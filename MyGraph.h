@@ -16,6 +16,7 @@
 using namespace std;
 using namespace boost;
 
+//Graph Class
 template <class graphtype>
 class MyGraph
 {
