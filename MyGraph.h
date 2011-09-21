@@ -13,8 +13,13 @@
 #include <boost/graph/erdos_renyi_generator.hpp>
 #include <boost/random/linear_congruential.hpp>
 
+//file with bundled proporties to use in graphs
+#include "Bundled_Proporties.h"
+
 using namespace std;
 using namespace boost;
+
+
 
 //Graph Class
 template <class graphtype>
@@ -26,7 +31,7 @@ private:
 public:
 	MyGraph(int N, double p);						//create random erdos renyi graph
 	MyGraph(vector<int> R);							//create graph with degree distribution R
-	MyGraph(int N, int d, double p)					//create graph with mixed preferential attachment
+	MyGraph(int N, int d, double p);				//create graph with mixed preferential attachment
 
 	float computeClusteringCoefficient();			//compute the clustering coefficient of the graph
 	void computeDegreeDistribution();				//compute the degree distribution of the graph
