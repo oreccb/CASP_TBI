@@ -19,16 +19,19 @@
 using namespace std;
 using namespace boost;
 
-
+#define DEFAULT_GRAPH_SIZE 100
 
 //Graph Class
 template <class graphtype>
 class MyGraph
 {
 private:
-	graphtype g;
+	
 
 public:
+	graphtype g;
+
+	MyGraph();										//create graph with DEFAULT_GRAPH_SIZE verticies and no edges
 	MyGraph(int N, double p);						//create random erdos renyi graph
 	MyGraph(vector<int> R);							//create graph with degree distribution R
 	MyGraph(int N, int d, double p);				//create graph with mixed preferential attachment
@@ -36,30 +39,39 @@ public:
 	float computeClusteringCoefficient();			//compute the clustering coefficient of the graph
 	void computeDegreeDistribution();				//compute the degree distribution of the graph
 
-
+	
 };
 
 
 /////////////////////////////////CONSTRUCTORS///////////////////////////////////////////////
 
+template <class graphtype>
+MyGraph<graphtype>::MyGraph()
+{
+	g = graphtype(DEFAULT_GRAPH_SIZE);
+}
+
+
 //Make an erdos renyi graph with N nodes and edges with probability p
 template <class graphtype>
 MyGraph<graphtype>::MyGraph(int N, double p)
 {
+	typedef boost::erdos_renyi_iterator<boost::minstd_rand, graphtype> ERGen;
 	boost::minstd_rand gen;
 	g = graphtype(ERGen(gen, N, p), ERGen(), N);
 }
 
 //We are making a random graph with specified deg distribution R
+//THIS MIGHT ONLY WORK FOR undirected graph right now, Fix if needed for directed graph
 template <class graphtype>
 MyGraph<graphtype>::MyGraph(vector<int> R)
 {
 	int i,j;
-	graph_traits<MyGraph>::vertex_iterator vi, vi_end;
-    graph_traits<MyGraph>::vertex_iterator vi2, vi2_end;
-    graph_traits<MyGraph>::edge_iterator ei, ei_end;
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+    graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+    graph_traits<graphtype>::edge_iterator ei, ei_end;
 
-	typename graph_traits<MyGraph>::edge_descriptor ed;
+	typename graph_traits<graphtype>::edge_descriptor ed;
     bool inserted;
 
 	//initialize seed
@@ -80,19 +92,21 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 	//permute list
 	random_shuffle( ordered_deg_list.begin(),ordered_deg_list.end() );
 	//print out the new shuffled list
-	for(i=0;i<ordered_deg_list.size();i++)
+	/*for(i=0;i<ordered_deg_list.size();i++)
 	{
 		cout<<"("<<ordered_deg_list[i].first<<",";
 		cout<<ordered_deg_list[i].second<<") ";
 	}
-	cout<<endl;
+	cout<<endl;*/
+
+	g = graphtype(R.size());
 
 	//sets the vertex id
-	//for (tie(vi, vi_end) = vertices(g), i=0 ; vi != vi_end; ++i, ++vi)
-	//{
-	//	g[*vi].x = i;
-	//}
-
+	for (tie(vi, vi_end) = vertices(g), i=0 ; vi != vi_end; ++i, ++vi)
+	{
+		g[*vi].x = i;
+	}
+	
 	//Add all the edges using the given algorithm described in the HW
 	for (i=0; i<ordered_deg_list.size()-1; i++)
 	{
@@ -102,6 +116,7 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 			{
 					if(ordered_deg_list[j].second != 1 && ordered_deg_list[i] != ordered_deg_list[j])
 					{
+					
 						//add edge
 						tie(ed, inserted) = add_edge(g[ordered_deg_list[i].first].x, g[ordered_deg_list[j].first].x, g);
 
@@ -118,9 +133,10 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 			}
 		}
     }
+	
 
 	//print out the verticies and edges
-	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+	/*for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		std::cout<<g[*vi].x <<" ";
 
@@ -129,11 +145,8 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 	for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
         cout << "edge: " << source(*ei, g) << " to " << target(*ei, g) << endl;
     }
-    cout<<endl;
+    cout<<endl;*/
 	
-
-	
-	return(0);
 }
 
 //this constructor creates a graph with N nodes based on the mixed preferential attachment model for growth
