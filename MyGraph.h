@@ -35,6 +35,7 @@ public:
 	MyGraph(int N, double p);						//create random erdos renyi graph
 	MyGraph(vector<int> R);							//create graph with degree distribution R
 	MyGraph(int N, int d, double p);				//create graph with mixed preferential attachment
+	MyGraph(string datafile, int mode);				//create graph based on real datafile (mode tells what file type it is to read)
 
 	float computeClusteringCoefficient();			//compute the clustering coefficient of the graph
 	void computeDegreeDistribution();				//compute the degree distribution of the graph
@@ -221,9 +222,33 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 		}
 		g_verticies++;
 	}
-
-
 }
+
+
+template <class graphtype>
+MyGraph<graphtype>::MyGraph(string datafile, int mode)
+{
+	if(mode == 0)
+	{
+		ifstream LI_inp;
+		//We should be opening BrianInMap.txt which is the sample network data
+		LI_inp.open(datafile);
+
+		LI
+
+
+	}
+	if(mode == 1)
+	{
+		//this will probably be for the real linkedIn data file if/when I get it
+	}
+	else
+	{
+		cout<<"You specified an unsupported mode....exiting"<<endl;
+		exit();
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////END CONSTRUCTORS//////////////////////////////////////////////////////////
