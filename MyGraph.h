@@ -2,8 +2,10 @@
 #define MYGRAPH_H
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <math.h>
 #include <algorithm>
 #include <boost/graph/adjacency_list.hpp>
@@ -228,24 +230,72 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 template <class graphtype>
 MyGraph<graphtype>::MyGraph(string datafile, int mode)
 {
-	if(mode == 0)
+	//working variables
+	graph_traits<graphtype>::edge_descriptor ed;
+	bool inserted;
+	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+	graph_traits<graphtype>::edge_iterator ei, ei_end;
+	graph_traits<graphtype>::vertex_descriptor vert1, vert2;
+
+	int temp;
+	string a_name;
+	string line;
+	vector< vector<int> > edgelist;
+	vector<int> nextedges;
+
+	//////////This mode is for the sample linkedIn data from Brian's InMap/////////////
+	if(mode == 0)              
 	{
 		ifstream LI_inp;
 		//We should be opening BrianInMap.txt which is the sample network data
-		LI_inp.open(datafile);
+		LI_inp.open(datafile.c_str());
+		
+		//loop through each line of file
+		while ( getline(LI_inp, line) )
+		{
+			//make each line like an input stream so we can manipulate easier
+			istringstream iss(line);
+			
+			//cout<<line<<endl; //dubugging
 
-		LI
+			//add the vertex and add attach the name to the vertex
+			vert1 = add_vertex(g);
+			iss >> temp;
+			iss >> a_name;
+			g[vert1].name = a_name;
 
+			nextedges.clear();   //clear the temp vector!
+			while (iss >> temp)
+			{
+				//make a vector of the vertex's edges
+				nextedges.push_back(temp);
+			}
+			edgelist.push_back(nextedges);
+			
+		}
+		
+		//cout<<"size:"<<edgelist.size()<<endl;
+		//put the edges in the graph from edgelist vector
+		for(int i=0; i<edgelist.size(); i++)
+		{
+			for(int j=0; j<edgelist[i].size(); j++)
+			{
+				//add edge between node i and edgelist[i][j]
+				tie(ed, inserted) = add_edge(i, edgelist[i][j], g);
+			}
 
+		}
 	}
-	if(mode == 1)
+
+
+	else if(mode == 1)
 	{
 		//this will probably be for the real linkedIn data file if/when I get it
 	}
 	else
 	{
 		cout<<"You specified an unsupported mode....exiting"<<endl;
-		exit();
+		exit(0);
 	}
 }
 

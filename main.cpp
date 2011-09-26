@@ -15,7 +15,8 @@ int main()
 	for(int i=0;i<100;i++){
 		R.push_back(99);
 	}
-	MyGraph<dirGraph> G(10000,4,.5);
+	//MyGraph<undirGraph> G(100,1,.5); //need to look at this function again-not getting a correct CC
+	MyGraph<undirGraph> G("BrianInMap.txt",0);
 
 	cout<<num_vertices(G.g)<<endl;
 	cout<<num_edges(G.g)<<endl;
