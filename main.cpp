@@ -16,7 +16,10 @@ int main()
 		R.push_back(99);
 	}
 	//MyGraph<undirGraph> G(100,1,.5); //need to look at this function again-not getting a correct CC
-	MyGraph<undirGraph> G("BrianInMap.txt",0);
+	//MyGraph<undirGraph> G("BrianInMap.txt",0);
+	MyGraph<undirGraph> G(147,(double)(2636.0/((147.0*146.0)/2.0)) );
+
+	//cout<<(double)(2636.0/((147.0*146.0)/2.0))<<"blah"<<endl;
 
 	cout<<num_vertices(G.g)<<endl;
 	cout<<num_edges(G.g)<<endl;
