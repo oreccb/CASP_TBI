@@ -39,6 +39,8 @@ public:
 	float computeClusteringCoefficient();			//compute the clustering coefficient of the graph
 	void computeDegreeDistribution();				//compute the degree distribution of the graph
 
+	void printVE();									//print vertices and edges
+
 	
 };
 
@@ -155,12 +157,77 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 template <class graphtype>
 MyGraph<graphtype>::MyGraph(int N, int d, double p)
 {
+	//working variables
+	graph_traits<graphtype>::edge_descriptor ed;
+	bool inserted;
+	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+	graph_traits<graphtype>::edge_iterator ei, ei_end;
+	graph_traits<graphtype>::vertex_descriptor vert1, vert2;
+
+	double randnum = 0;
+	int g_edges = 0;
+	int g_verticies = 0;
+	int ind_temp;
+
+	vector<int> deg;
+
+	//initialize seed
+	srand( (int)time(NULL) );
+
+	//need to initialize the graph with 2 nodes and an edge between them??
+	vert1 = add_vertex(g);
+	vert2 = add_vertex(g);
+	add_edge(vert1,vert2,g);
+	g_verticies = 2;
+	g_edges = 1;
 	
+	//start tracking degrees of verticies
+	deg.push_back(1);
+	deg.push_back(1);
+
+	//add a new vertex at every step in the growth process
+	for(int i=2; i<N; i++)
+	{
+		vert1 = add_vertex(g);
+		//loop through the d edges added
+		for(int j=0; j<d; j++)
+		{
+			//decide whether to attach randomly or with pref attachment
+			randnum = rand() / (RAND_MAX + 1);
+
+			//attach randomly if randnum < p
+			if(randnum < p)
+			{
+				//randomly find the vartex to attach an edge to
+				ind_temp = rand() % g_verticies;
+				tie(ed, inserted) = add_edge(i, ind_temp, g);
+			}
+			//attach with pref attachment if randnum >= p
+			else
+			{
+				
+				int r = rand() % g_edges;				//generate rand number between
+				double s = 0;								//accumulation of degrees
+				int k = 0;								//index degree vector
+				while(r>s)
+				{
+					s = s + ((double)deg[k]/2.0);					//need to divide by two since we are doing an undirected graph
+					k++;
+				}
+				deg[k]++;
+
+			}
+			g_edges++;
+		}
+		g_verticies++;
+	}
 
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////END CONSTRUCTORS//////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //This function computes the clustering coefficient of the graph g
 template <class graphtype>
@@ -188,6 +255,29 @@ void MyGraph<graphtype>::computeDegreeDistribution()
 
 	return;
 }
+
+//print out the verticies and edges
+template <class graphtype>
+void MyGraph<graphtype>::printVE()
+{
+	
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+    graph_traits<graphtype>::edge_iterator ei, ei_end;
+
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+	{
+		//std::cout<<g[*vi].x <<" ";
+		cout<<*vi<<" ";
+	}
+	std::cout<<std::endl;
+	for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
+        cout << "edge: " << source(*ei, g) << " to " << target(*ei, g) << endl;
+    }
+    cout<<endl;
+
+	return;
+}
+
 
 
 

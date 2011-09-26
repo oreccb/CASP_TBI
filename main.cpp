@@ -8,16 +8,20 @@ int main()
 	typedef adjacency_list<setS,vecS,directedS, MyNode, MyEdge> dirGraph;
 	//typedef adjacency_list<vecS,vecS,undirectedS> U;
 
-	//Time the Execution
+	//Time the Execution of the code
 	clock_t start = clock();
 
 	vector<int> R;
 	for(int i=0;i<100;i++){
-		R.push_back(3);
+		R.push_back(99);
 	}
-	MyGraph<undirGraph> G(R);
+	MyGraph<dirGraph> G(10000,4,.5);
 
 	cout<<num_vertices(G.g)<<endl;
+	cout<<num_edges(G.g)<<endl;
+	cout<<G.computeClusteringCoefficient()<<endl;
+
+	//G.printVE();
 
 	//End doing stuff
 	clock_t ends = clock();
