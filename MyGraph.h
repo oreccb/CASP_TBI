@@ -42,6 +42,8 @@ public:
 	float computeClusteringCoefficient();			//compute the clustering coefficient of the graph
 	void computeDegreeDistribution();				//compute the degree distribution of the graph
 
+	vector<int> degOfVertices();					//output vector<int> that is the degree of each vertex for each slot
+
 	void printVE();									//print vertices and edges
 
 	
@@ -226,7 +228,7 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 	}
 }
 
-
+//make graph based on real data from file
 template <class graphtype>
 MyGraph<graphtype>::MyGraph(string datafile, int mode)
 {
@@ -263,6 +265,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 			iss >> temp;
 			iss >> a_name;
 			g[vert1].name = a_name;
+			//cout<<g[vert1].name<<endl;  //debugging
 
 			nextedges.clear();   //clear the temp vector!
 			while (iss >> temp)
@@ -321,12 +324,79 @@ float MyGraph<graphtype>::computeClusteringCoefficient()
 	
 }
 
+//output vector<int> that is the degree of each vertex for each slot
+template <class graphtype>
+vector<int> MyGraph<graphtype>::degOfVertices()
+{
+	vector<int> R;
+	int deg;
+	graph_traits<graphtype>::vertex_iterator u, u_end;
+	//degree_size_type deg2;
+
+	for (tie(u, u_end) = vertices(g); u != u_end; ++u)
+	{
+		deg = out_degree(*u,g);
+		R.push_back(deg);
+	}
+	
+
+	return R;
+}
+
+
 //This function computes the degree distribution of the graph g
+//CAUTION:THIS MIGHT NOT BE WORKING RIGHT
 template <class graphtype>
 void MyGraph<graphtype>::computeDegreeDistribution()
 {
 	
+	vector<int> R;
+	int deg;
+	int max_deg;
+	graph_traits<graphtype>::vertex_iterator u, u_end;
 
+	ofstream degOutfile;
+	degOutfile.open("degOutfile.csv");
+
+	for (tie(u, u_end) = vertices(g); u != u_end; ++u)
+	{
+		deg = out_degree(*u,g);
+		R.push_back(deg);
+	}
+	
+	sort( R.begin(), R.end() );
+	//find max degree of graph
+	max_deg = *max_element( R.begin(),R.end() );
+	vector<int> deg_dist(max_deg);
+	int temp;
+	//loop through the different possible degrees and find the degree distribution 
+	for(int i=0; i<max_deg; i++)
+	{
+		temp = 0;
+		for(int j=max_deg; j>=0; j--)
+		{
+			if(R[j] >= i)
+			{
+				temp = temp + 1;
+			}
+		}
+		deg_dist[i] = temp;
+
+	}
+
+	for(int i=0; i<R.size(); i++)
+	{
+		cout<<R[i]<<" ";
+	}
+	cout<<endl;
+	cout<<max_deg<<endl;
+	cout<<"start of deg dist: ";
+	for(int i=0; i<deg_dist.size(); i++)
+	{
+		cout<<deg_dist[i]<<" ";
+		degOutfile<<i<<","<<deg_dist[i]<<endl;
+	}
+	cout<<endl;
 
 	return;
 }
