@@ -4,7 +4,10 @@
 int main()
 {
 	//graph types
-	typedef adjacency_list<setS,vecS,undirectedS, MyNode, MyEdge> undirGraph;
+
+	//use lists so we can remove edges
+	typedef adjacency_list<listS,vecS,undirectedS, MyNode, MyEdge> undirGraph;
+
 	typedef adjacency_list<setS,vecS,directedS, MyNode, MyEdge> dirGraph;
 	//typedef adjacency_list<vecS,vecS,undirectedS> U;
 
@@ -13,14 +16,15 @@ int main()
 
 	MyGraph<undirGraph> G_real("BrianInMap.txt",0);
 	
-	int n = num_vertices(G_real.g);
-	int	e = num_edges(G_real.g);
-
 	
 	cout<<"Real Graph:"<<endl;
-	cout<<num_vertices(G_real.g)<<endl;
-	cout<<num_edges(G_real.g)<<endl;
+	cout<<G_real.getNumVertices()<<endl;
+	cout<<G_real.getNumEdges()<<endl<<endl;
 	//cout<<G_real.computeClusteringCoefficient()<<endl<<endl;
+
+	G_real.Infiltrate(1, .01, .4, .2, 1, 5, 0);
+	//cout<<G_real.getNumVertices()<<endl;
+	//cout<<G_real.getNumEdges()<<endl<<endl;
 
 	//G.printVE();
 

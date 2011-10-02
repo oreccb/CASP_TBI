@@ -13,9 +13,7 @@ int presentation1()
 
 	MyGraph<undirGraph> G_real("BrianInMap.txt",0);
 	
-	int n = num_vertices(G_real.g);
-	int	e = num_edges(G_real.g);
-
+	
 	
 	//make R-type random graph based on deg distribution
 	vector<int> R;
@@ -24,13 +22,13 @@ int presentation1()
 	
 	//G_real.computeDegreeDistribution();
 	double p = .8;
-	MyGraph<undirGraph> G_PA(n,e/n,p); //need to look at this function again-not getting a correct CC
+	//MyGraph<undirGraph> G_PA(n,e/n,p); //need to look at this function again-not getting a correct CC
 	
-	MyGraph<undirGraph> G_E(n,(double)((double)e/(((double)n*(double)(n-1))/2.0)) );
+	//MyGraph<undirGraph> G_E(n,(double)((double)e/(((double)n*(double)(n-1))/2.0)) );
 	//cout<<"E prob:"<<(double)((double)e/(((double)n*(double)(n-1))/2.0))<<endl;
 
 	//cout<<(double)(2636.0/((147.0*146.0)/2.0))<<"blah"<<endl;
-	cout<<"Real Graph:"<<endl;
+	/*cout<<"Real Graph:"<<endl;
 	cout<<num_vertices(G_real.g)<<endl;
 	cout<<num_edges(G_real.g)<<endl;
 	cout<<G_real.computeClusteringCoefficient()<<endl<<endl;
@@ -48,7 +46,7 @@ int presentation1()
 	cout<<"PA-type Random Graph:"<<endl;
 	cout<<num_vertices(G_PA.g)<<endl;
 	cout<<num_edges(G_PA.g)<<endl;
-	cout<<G_PA.computeClusteringCoefficient()<<endl<<endl;
+	cout<<G_PA.computeClusteringCoefficient()<<endl<<endl;*/
 
 	//G.printVE();
 

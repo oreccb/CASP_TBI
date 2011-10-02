@@ -28,11 +28,12 @@ template <class graphtype>
 class MyGraph
 {
 private:
-	
+	int nodeLeft(double leave);						//removes vertices with probability 'leave'
+	bool nodeJoin(double join);						//adds a node based on probability 'join', returns a bool if a vertex was added
 
-public:
 	graphtype g;
-
+public:
+	
 	MyGraph();										//create graph with DEFAULT_GRAPH_SIZE verticies and no edges
 	MyGraph(int N, double p);						//create random erdos renyi graph
 	MyGraph(vector<int> R);							//create graph with degree distribution R
@@ -44,6 +45,8 @@ public:
 
 	vector<int> degOfVertices();					//output vector<int> that is the degree of each vertex for each slot
 
+	int getNumVertices();							//return the number of vertices of g
+	int getNumEdges();								//return the number of edges of g
 	void printVE();									//print vertices and edges
 
 	int Infiltrate(									//Run the trust based infiltration simulation
@@ -410,6 +413,17 @@ void MyGraph<graphtype>::computeDegreeDistribution()
 	return;
 }
 
+template <class graphtype>
+int MyGraph<graphtype>::getNumVertices()
+{
+	return num_vertices(g);
+}
+template <class graphtype>
+int MyGraph<graphtype>::getNumEdges()
+{
+	return num_edges(g);
+}
+
 //print out the verticies and edges
 template <class graphtype>
 void MyGraph<graphtype>::printVE()
@@ -437,14 +451,58 @@ void MyGraph<graphtype>::printVE()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class graphtype>
+int MyGraph<graphtype>::nodeLeft(double leave)
+{
+	double randnum = 0;
+	int num_removed = 0;
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+	{
+		randnum = (double)rand() / (double)(RAND_MAX + 1);
+		if( randnum < leave )
+		{
+			//cout<<leave<<"  "<<randnum<<endl;
+			//cout<<"DEBUG: removing vertex "<<*vi<<endl;
+
+			clear_vertex(*vi,g);
+			remove_vertex(*vi,g);
+			num_removed++;
+		}
+	}
+	return num_removed;
+}
+
+template <class graphtype>
+bool MyGraph<graphtype>::nodeJoin(double join)
+{
+	bool added = false;
+	double randnum = 0;
+	graph_traits<graphtype>::vertex_descriptor u;
+
+	randnum = (double)rand() / (double)(RAND_MAX + 1);
+	if( randnum < join )
+	{
+		u = add_vertex(g);
+		added = true;
+		cout<<"DEBUG: added vertex "<<u<<endl;
+	}
+
+	return added;
+}
+
+template <class graphtype>
 int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double po, double alpha, int budget, int stratagy)
 {
-	//set the seed
+	//initialize seed
+	srand( (int)time(NULL) );
 
 	//check each node if it leaves the network
+	nodeLeft(leave);
 
 	//check if a node joins the network
-	
+	nodeJoin(join);
+
 	//find the nodes that the stealth company requested
 
 	//find the nodes that accepted the connection requests and add them to the network
