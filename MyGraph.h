@@ -46,6 +46,15 @@ public:
 
 	void printVE();									//print vertices and edges
 
+	int Infiltrate(									//Run the trust based infiltration simulation
+		double join,	//probability that an actor joins the network
+		double leave,	//the probability that each node leaves the network during a timestep
+		double pt,		//probability that actor will accept connection due to one shared connection with stealth company
+		double po,		//base probability that an actor will accept connection due to ego
+		double alpha,	//exponentiating factor in calculating ego probability
+		int budget,	//Budget of stealth company (number of connection requests sent out at each timestep
+		int stratagy //stratagy of stealth company is picking who they request
+		);								
 	
 };
 
@@ -422,6 +431,35 @@ void MyGraph<graphtype>::printVE()
 
 	return;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////Trust Based Infiltration Simulation//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class graphtype>
+int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double po, double alpha, int budget, int stratagy)
+{
+	//set the seed
+
+	//check each node if it leaves the network
+
+	//check if a node joins the network
+	
+	//find the nodes that the stealth company requested
+
+	//find the nodes that accepted the connection requests and add them to the network
+
+	//calculate the trust value and that is the return value
+
+
+	return 0;
+
+}
+
+
+
+
+
 
 
 
