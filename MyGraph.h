@@ -31,6 +31,8 @@ private:
 	int nodeLeft(double leave);						//removes vertices with probability 'leave'
 	bool nodeJoin(double join);						//adds a node based on probability 'join', returns a bool if a vertex was added
 	vector<int> genRequestList(int strategy, int budget);  //generate the list of nodes SC will request based on strat and budget
+	int update(vector<int> nodesRequested, double pt, double po, double alpha);  //update network with connections that were accepted due to model
+	double calcTrustVal();							//calculate the trust value
 
 	graphtype g;									//graph
 	int SC_vertex;									//index of stealth company node
@@ -525,7 +527,7 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 
 //return a vector of vertex indicies that the SC will request a connection based on the strategy
 //Budget is an integer specifying how many requests the SC can send per timestep
-//Strategy 1: random selection
+//Strategy 1: random selection (use random number to find the requested nodes)
 //Strategy 2: preferential selection (send request the connections of people SC is currently connected to)
 template <class graphtype>
 vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
@@ -576,10 +578,58 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 }
 
 
+//function to input a list of nodes to request and the probabilities associated with the model to find out which nodes accepted the connection
+//request from the SC
+//Arguments: 
+//////nodesRequested -- vector of ints corresponding to node indecies to request
+//////pt 
+//////po
+//////alpha
+//Return: the number of nodes that accepted connection request
+template <class graphtype>
+int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po, double alpha)
+{
+	int total = 0;
+	double PT;  //probability that the node will accept request due to trust
+	double PE;  //probability that the node will accept request due to ego
+	double P;   //total probability that the node will accept the connection
+
+	//for each requested vertices
+		
+		//find degree of node for ego
+
+		//find neighbors between SC and node for trust
+
+		//calculate the PT and PE then P
+
+		//randomly determine whether the request will be accepted
+			//if yes then add the edge and increment the total number of edges added
+			//if no then move on
+
+	return total;
+}
+
+
+//calculate the trust value based on fraction of infected nodes (nodes connected to SC)
+template <class graphtype>
+double MyGraph<graphtype>::calcTrustVal()
+{
+	double TV = 0.0;
+	int SC_deg = 0;
+
+	SC_deg = out_degree(SC_vertex,g);
+	cout<<"SC_deg: "<<SC_deg<<endl;
+
+	return TV;
+}
+
+
+
 template <class graphtype>
 int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double po, double alpha, int budget, int strategy)
 {
 	vector<int> nodesRequested;
+	double TrustValue;
 	//initialize seed  -- do this in main
 	//srand( (int)time(NULL) );
 
@@ -594,6 +644,7 @@ int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double p
 
 	//find the nodes that accepted the connection requests and add them to the network
 
+	//TrustValue = calcTrustVal();
 	//calculate the trust value and that is the return value
 
 
