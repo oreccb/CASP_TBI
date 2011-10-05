@@ -30,8 +30,10 @@ class MyGraph
 private:
 	int nodeLeft(double leave);						//removes vertices with probability 'leave'
 	bool nodeJoin(double join);						//adds a node based on probability 'join', returns a bool if a vertex was added
+	vector<int> genRequestList(int strategy, int budget);  //generate the list of nodes SC will request based on strat and budget
 
-	graphtype g;
+	graphtype g;									//graph
+	int SC_vertex;									//index of stealth company node
 public:
 	
 	MyGraph();										//create graph with DEFAULT_GRAPH_SIZE verticies and no edges
@@ -48,6 +50,10 @@ public:
 	int getNumVertices();							//return the number of vertices of g
 	int getNumEdges();								//return the number of edges of g
 	void printVE();									//print vertices and edges
+
+	int TBI_add_vertex();							//add a vertex to g and return the index of it
+	void setSC_vertex( int v );						//set the SC vertex index
+	int getSC_vertex();								//get the SC vertex index
 
 	int Infiltrate(									//Run the trust based infiltration simulation
 		double join,	//probability that an actor joins the network
@@ -68,6 +74,7 @@ template <class graphtype>
 MyGraph<graphtype>::MyGraph()
 {
 	g = graphtype(DEFAULT_GRAPH_SIZE);
+	SC_vertex = -1;
 }
 
 
@@ -78,6 +85,8 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	typedef boost::erdos_renyi_iterator<boost::minstd_rand, graphtype> ERGen;
 	boost::minstd_rand gen;
 	g = graphtype(ERGen(gen, N, p), ERGen(), N);
+
+	SC_vertex = -1;
 }
 
 //We are making a random graph with specified deg distribution R
@@ -165,6 +174,8 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
         cout << "edge: " << source(*ei, g) << " to " << target(*ei, g) << endl;
     }
     cout<<endl;*/
+
+	SC_vertex = -1;
 	
 }
 
@@ -238,6 +249,8 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 		}
 		g_verticies++;
 	}
+
+	SC_vertex = -1;
 }
 
 //make graph based on real data from file
@@ -312,6 +325,8 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 		cout<<"You specified an unsupported mode....exiting"<<endl;
 		exit(0);
 	}
+
+	SC_vertex = -1;
 }
 
 
@@ -446,12 +461,29 @@ void MyGraph<graphtype>::printVE()
 	return;
 }
 
+template <class graphtype>
+int MyGraph<graphtype>::TBI_add_vertex() 
+{
+	return (int)add_vertex(g);
+}
+
+template <class graphtype>
+void MyGraph<graphtype>::setSC_vertex( int v ) 
+{	
+	SC_vertex = v;
+}
+template <class graphtype>
+int MyGraph<graphtype>::getSC_vertex() 
+{	
+	return SC_vertex;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////Trust Based Infiltration Simulation//////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class graphtype>
-int MyGraph<graphtype>::nodeLeft(double leave)
+int MyGraph<graphtype>::nodeLeft(double leave) 
 {
 	double randnum = 0;
 	int num_removed = 0;
@@ -460,13 +492,13 @@ int MyGraph<graphtype>::nodeLeft(double leave)
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		randnum = (double)rand() / (double)(RAND_MAX + 1);
-		if( randnum < leave )
+		if( randnum < leave && *vi != SC_vertex )  //check if the random number is less than the probability and if the vertex is not the SC
 		{
 			//cout<<leave<<"  "<<randnum<<endl;
 			//cout<<"DEBUG: removing vertex "<<*vi<<endl;
 
 			clear_vertex(*vi,g);
-			remove_vertex(*vi,g);
+			remove_vertex(*vi,g);  //might be a bug here!  does removing mess with vertex iterator
 			num_removed++;
 		}
 	}
@@ -491,11 +523,65 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 	return added;
 }
 
+//return a vector of vertex indicies that the SC will request a connection based on the strategy
+//Budget is an integer specifying how many requests the SC can send per timestep
+//Strategy 1: random selection
+//Strategy 2: preferential selection (send request the connections of people SC is currently connected to)
 template <class graphtype>
-int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double po, double alpha, int budget, int stratagy)
+vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 {
-	//initialize seed
-	srand( (int)time(NULL) );
+	vector<int> nodesRequested;
+	int randvert = 0;
+	
+	switch(strategy)
+	{
+	case 1:
+		{
+			cout<<"DEBUG: Using Strategy 1 to pick requested nodes"<<endl;
+			while(nodesRequested.size() < budget)
+			{
+				randvert = rand() % num_vertices(g);
+				if(randvert != SC_vertex)
+				{
+					nodesRequested.push_back(randvert);
+				}
+			}
+		}
+		break;
+	case 2:
+		{
+			cout<<"DEBUG: Using Strategy 2 to pick requested nodes"<<endl;
+
+		}
+		break;
+	default:
+		{
+			cout<<"Invalid strategy, Exiting..."<<endl;
+			exit(1);
+		}
+		break;
+	}
+	
+
+	//DEBUG STUFF//////////////
+	/*cout<<"DEBUG: Nodes to Request-- ";
+	for(int i =0;i<nodesRequested.size();i++)
+	{
+		cout<<nodesRequested[i]<<" ";
+	}
+	cout<<endl;*/
+	///////////////////////
+
+	return nodesRequested;
+}
+
+
+template <class graphtype>
+int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double po, double alpha, int budget, int strategy)
+{
+	vector<int> nodesRequested;
+	//initialize seed  -- do this in main
+	//srand( (int)time(NULL) );
 
 	//check each node if it leaves the network
 	nodeLeft(leave);
@@ -504,6 +590,7 @@ int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double p
 	nodeJoin(join);
 
 	//find the nodes that the stealth company requested
+	nodesRequested = genRequestList(strategy, budget);
 
 	//find the nodes that accepted the connection requests and add them to the network
 

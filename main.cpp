@@ -22,10 +22,19 @@ int main()
 	cout<<G_real.getNumEdges()<<endl<<endl;
 	//cout<<G_real.computeClusteringCoefficient()<<endl<<endl;
 
-	G_real.Infiltrate(1, .01, .4, .2, 1, 5, 0);
+	//////////////////////////////////////////////////TBI STUFF/////////////////////////
+	//initialize seed
+	srand( (int)time(NULL) );
+	//need to add the SC node and set the SC_vertex value in class
+	int SC_vert = G_real.TBI_add_vertex();
+	G_real.setSC_vertex( SC_vert );
+	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;
+
+	G_real.Infiltrate(.5, .01, .4, .2, 1, 5, 1);
+	
+	///////////////////////////////////////////////END TBI STUFF///////////////////////
 	//cout<<G_real.getNumVertices()<<endl;
 	//cout<<G_real.getNumEdges()<<endl<<endl;
-
 	//G.printVE();
 
 	//End doing stuff
