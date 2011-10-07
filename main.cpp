@@ -6,7 +6,7 @@ int main()
 	//graph types
 
 	//use lists so we can remove edges
-	typedef adjacency_list<listS,vecS,undirectedS, MyNode, MyEdge> undirGraph;
+	typedef adjacency_list<vecS,vecS,undirectedS, MyNode, MyEdge> undirGraph;
 
 	typedef adjacency_list<setS,vecS,directedS, MyNode, MyEdge> dirGraph;
 	//typedef adjacency_list<vecS,vecS,undirectedS> U;
@@ -30,9 +30,17 @@ int main()
 	G_real.setSC_vertex( SC_vert );
 	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;
 	
-	G_real.Infiltrate(.5, .01, .4, .2, 1, 5, 1);
+	G_real.Infiltrate(.1, //joion
+					  .01, //leave
+					  .4,  //pt
+					  .2,  //po
+					  1,   //alpha
+					  5,   //budget
+					  1);  //strategy
 	
 	///////////////////////////////////////////////END TBI STUFF///////////////////////
+
+	cout<<"common neighbors: "<<G_real.numCommonNeighbors(0,1)<<endl;
 	//cout<<G_real.getNumVertices()<<endl;
 	//cout<<G_real.getNumEdges()<<endl<<endl;
 	//G.printVE();

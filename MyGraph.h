@@ -23,6 +23,8 @@ using namespace boost;
 
 #define DEFAULT_GRAPH_SIZE 100
 
+
+
 //Graph Class
 template <class graphtype>
 class MyGraph
@@ -56,6 +58,8 @@ public:
 	int TBI_add_vertex();							//add a vertex to g and return the index of it
 	void setSC_vertex( int v );						//set the SC vertex index
 	int getSC_vertex();								//get the SC vertex index
+
+	int numCommonNeighbors(int u, int v);			//Calc the number of common neighbors between 2 vertices of g
 
 	int Infiltrate(									//Run the trust based infiltration simulation
 		double join,	//probability that an actor joins the network
@@ -96,7 +100,8 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 template <class graphtype>
 MyGraph<graphtype>::MyGraph(vector<int> R)
 {
-	int i,j;
+	unsigned int i;
+	unsigned int j;
 	graph_traits<graphtype>::vertex_iterator vi, vi_end;
     graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
     graph_traits<graphtype>::edge_iterator ei, ei_end;
@@ -192,7 +197,7 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 	bool inserted;
 	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
 	graph_traits<graphtype>::edge_iterator ei, ei_end;
-	graph_traits<graphtype>::vertex_descriptor vert1, vert2;
+	graph_traits<graphtype>::vertex_descriptor vert1,vert2;
 
 	double randnum = 0;
 	int g_edges = 0;
@@ -216,11 +221,11 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 	deg.push_back(1);
 
 	//add a new vertex at every step in the growth process
-	for(int i=2; i<N; i++)
+	for(unsigned int i=2; i<N; i++)
 	{
 		vert1 = add_vertex(g);
 		//loop through the d edges added
-		for(int j=0; j<d; j++)
+		for(unsigned int j=0; j<d; j++)
 		{
 			//decide whether to attach randomly or with pref attachment
 			randnum = rand() / (RAND_MAX + 1);
@@ -264,7 +269,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	bool inserted;
 	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
 	graph_traits<graphtype>::edge_iterator ei, ei_end;
-	graph_traits<graphtype>::vertex_descriptor vert1, vert2;
+	graph_traits<graphtype>::vertex_descriptor vert1;
 
 	int temp;
 	string a_name;
@@ -306,9 +311,9 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 		
 		//cout<<"size:"<<edgelist.size()<<endl;
 		//put the edges in the graph from edgelist vector
-		for(int i=0; i<edgelist.size(); i++)
+		for(unsigned int i=0; i<edgelist.size(); i++)
 		{
-			for(int j=0; j<edgelist[i].size(); j++)
+			for(unsigned int j=0; j<edgelist[i].size(); j++)
 			{
 				//add edge between node i and edgelist[i][j]
 				tie(ed, inserted) = add_edge(i, edgelist[i][j], g);
@@ -399,10 +404,10 @@ void MyGraph<graphtype>::computeDegreeDistribution()
 	vector<int> deg_dist(max_deg);
 	int temp;
 	//loop through the different possible degrees and find the degree distribution 
-	for(int i=0; i<max_deg; i++)
+	for(unsigned int i=0; i<max_deg; i++)
 	{
 		temp = 0;
-		for(int j=max_deg; j>=0; j--)
+		for(unsigned int j=max_deg; j>=0; j--)
 		{
 			if(R[j] >= i)
 			{
@@ -466,7 +471,7 @@ void MyGraph<graphtype>::printVE()
 template <class graphtype>
 int MyGraph<graphtype>::TBI_add_vertex() 
 {
-	return (int)add_vertex(g);
+	return add_vertex(g);
 }
 
 template <class graphtype>
@@ -514,8 +519,10 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 	double randnum = 0;
 	graph_traits<graphtype>::vertex_descriptor u;
 
-	randnum = (double)rand() / (double)(RAND_MAX + 1);
-	if( randnum < join )
+	//randnum = (double)rand() / (double)(RAND_MAX + 1);
+	randnum = rand() % 100;
+	cout<<"randnum: "<<randnum<<endl;
+	if( randnum < (join*100) )  //use integer <join*100 instead 
 	{
 		u = add_vertex(g);
 		added = true;
@@ -540,10 +547,10 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 	case 1:
 		{
 			cout<<"DEBUG: Using Strategy 1 to pick requested nodes"<<endl;
-			while(nodesRequested.size() < budget)
+			while(nodesRequested.size() < (unsigned int)budget)
 			{
 				randvert = rand() % num_vertices(g);
-				if(randvert != SC_vertex)
+				if(randvert != SC_vertex)  //also add check here that the node hasn't been requested before and that the node isnt already connected to SC
 				{
 					nodesRequested.push_back(randvert);
 				}
@@ -577,6 +584,35 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 	return nodesRequested;
 }
 
+//find the number of common neighbors(adjacent verticies) between two nodes
+//in real terms, the number of common 1st level connections
+template <class graphtype>
+int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
+{
+	int count = 0;
+	graph_traits<graphtype>::adjacency_iterator adjv, adjv_end;
+	graph_traits<graphtype>::adjacency_iterator adju, adju_end;
+
+	for (tie(adju, adju_end) = adjacent_vertices(u,g); adju != adju_end; ++adju)
+	{
+		for (tie(adjv, adjv_end) = adjacent_vertices(v , g); adjv != adjv_end; ++adjv) //for each vi, find the vertices adjacent to vi
+		{
+			//int a = target(*adjv,g);
+			//int b = target(*adju,g);
+
+			//if(a == b)
+			//{
+			//	//cout<<*adju<<endl;
+			//	count++;
+			//}
+		}
+		
+
+	}
+
+	return count;
+}
+
 
 //function to input a list of nodes to request and the probabilities associated with the model to find out which nodes accepted the connection
 //request from the SC
@@ -594,17 +630,27 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 	double PE;  //probability that the node will accept request due to ego
 	double P;   //total probability that the node will accept the connection
 
+	int nodeDeg;
+	int commonNeighbors;
+
 	//for each requested vertices
+	for(unsigned int i =0; i<nodesRequested.size(); i++)
+	{
 		
 		//find degree of node for ego
+		//cout<<"out deg: "<<out_degree(nodesRequested[i],g)<<endl;
+		//cout<<"in deg: "<<in_degree(nodesRequested[i],g)<<endl;
+		nodeDeg = out_degree(nodesRequested[i],g);
 
 		//find neighbors between SC and node for trust
+		//commonNeighbors = 
 
 		//calculate the PT and PE then P
 
 		//randomly determine whether the request will be accepted
 			//if yes then add the edge and increment the total number of edges added
 			//if no then move on
+	}
 
 	return total;
 }
@@ -618,7 +664,7 @@ double MyGraph<graphtype>::calcTrustVal()
 	int SC_deg = 0;
 
 	SC_deg = out_degree(SC_vertex,g);
-	cout<<"SC_deg: "<<SC_deg<<endl;
+	cout<<"TRUST VALUE (SC_deg): "<<SC_deg<<endl;
 
 	return TV;
 }
@@ -634,7 +680,7 @@ int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double p
 	//srand( (int)time(NULL) );
 
 	//check each node if it leaves the network
-	nodeLeft(leave);
+	//nodeLeft(leave);
 
 	//check if a node joins the network
 	nodeJoin(join);
@@ -643,8 +689,9 @@ int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double p
 	nodesRequested = genRequestList(strategy, budget);
 
 	//find the nodes that accepted the connection requests and add them to the network
+	update(nodesRequested, pt, po, alpha);
 
-	//TrustValue = calcTrustVal();
+	TrustValue = calcTrustVal();
 	//calculate the trust value and that is the return value
 
 

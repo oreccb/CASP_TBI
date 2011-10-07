@@ -4,6 +4,7 @@
 struct MyNode {
     int x;
 	std::string name;
+	bool requested;
 };
 
 struct MyEdge {
