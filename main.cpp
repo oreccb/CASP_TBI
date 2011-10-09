@@ -40,7 +40,7 @@ int main()
 	
 	///////////////////////////////////////////////END TBI STUFF///////////////////////
 
-	cout<<"common neighbors: "<<G_real.numCommonNeighbors(0,1)<<endl;
+	cout<<"common neighbors: "<<G_real.numCommonNeighbors(9,10)<<endl;
 	//cout<<G_real.getNumVertices()<<endl;
 	//cout<<G_real.getNumEdges()<<endl<<endl;
 	//G.printVE();

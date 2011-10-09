@@ -24,7 +24,6 @@ using namespace boost;
 #define DEFAULT_GRAPH_SIZE 100
 
 
-
 //Graph Class
 template <class graphtype>
 class MyGraph
@@ -37,7 +36,8 @@ private:
 	double calcTrustVal();							//calculate the trust value
 
 	graphtype g;									//graph
-	int SC_vertex;									//index of stealth company node
+	int SC_vertex;									//stealth company vertex
+
 public:
 	
 	MyGraph();										//create graph with DEFAULT_GRAPH_SIZE verticies and no edges
@@ -495,11 +495,14 @@ int MyGraph<graphtype>::nodeLeft(double leave)
 	double randnum = 0;
 	int num_removed = 0;
 	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	graph_traits<graphtype>::vertex_descriptor SC;
+
+	SC = vertex(SC_vertex,g);
 
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		randnum = (double)rand() / (double)(RAND_MAX + 1);
-		if( randnum < leave && *vi != SC_vertex )  //check if the random number is less than the probability and if the vertex is not the SC
+		if( randnum < leave && *vi != SC )  //check if the random number is less than the probability and if the vertex is not the SC
 		{
 			//cout<<leave<<"  "<<randnum<<endl;
 			//cout<<"DEBUG: removing vertex "<<*vi<<endl;
@@ -590,21 +593,28 @@ template <class graphtype>
 int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
 {
 	int count = 0;
+	graph_traits<graphtype>::vertex_descriptor U, V;
 	graph_traits<graphtype>::adjacency_iterator adjv, adjv_end;
 	graph_traits<graphtype>::adjacency_iterator adju, adju_end;
 
-	for (tie(adju, adju_end) = adjacent_vertices(u,g); adju != adju_end; ++adju)
+	U = vertex(u,g);
+	V = vertex(v,g);
+
+	cout<<"in numCommonNeighbors function"<<endl;
+	for (tie(adju, adju_end) = adjacent_vertices(U,g); adju != adju_end; ++adju)
 	{
-		for (tie(adjv, adjv_end) = adjacent_vertices(v , g); adjv != adjv_end; ++adjv) //for each vi, find the vertices adjacent to vi
+		for (tie(adjv, adjv_end) = adjacent_vertices(V,g); adjv != adjv_end; ++adjv) //for each vi, find the vertices adjacent to vi
 		{
 			//int a = target(*adjv,g);
 			//int b = target(*adju,g);
+			
+			//cout<<*adju<<"  "<<*adjv<<endl;
 
-			//if(a == b)
-			//{
-			//	//cout<<*adju<<endl;
-			//	count++;
-			//}
+			if(*adju == *adjv)
+			{
+				cout<<g[*adju].name<<endl;
+				count++;
+			}
 		}
 		
 
@@ -636,14 +646,15 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 	//for each requested vertices
 	for(unsigned int i =0; i<nodesRequested.size(); i++)
 	{
-		
+		int numCN;
+
 		//find degree of node for ego
 		//cout<<"out deg: "<<out_degree(nodesRequested[i],g)<<endl;
 		//cout<<"in deg: "<<in_degree(nodesRequested[i],g)<<endl;
 		nodeDeg = out_degree(nodesRequested[i],g);
 
 		//find neighbors between SC and node for trust
-		//commonNeighbors = 
+		numCN = numCommonNeighbors(SC_vertex, nodesRequested[i]);
 
 		//calculate the PT and PE then P
 
@@ -663,7 +674,10 @@ double MyGraph<graphtype>::calcTrustVal()
 	double TV = 0.0;
 	int SC_deg = 0;
 
-	SC_deg = out_degree(SC_vertex,g);
+	graph_traits<graphtype>::vertex_descriptor SC;
+	SC = vertex(SC_vertex,g);
+
+	SC_deg = out_degree(SC,g);
 	cout<<"TRUST VALUE (SC_deg): "<<SC_deg<<endl;
 
 	return TV;
