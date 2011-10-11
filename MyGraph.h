@@ -62,7 +62,7 @@ public:
 
 	int numCommonNeighbors(int u, int v);			//Calc the number of common neighbors between 2 vertices of g
 
-	int Infiltrate(									//Run the trust based infiltration simulation
+	double Infiltrate(									//Run the trust based infiltration simulation
 		double join,	//probability that an actor joins the network
 		double leave,	//the probability that each node leaves the network during a timestep
 		double pt,		//probability that actor will accept connection due to one shared connection with stealth company
@@ -92,6 +92,12 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	typedef boost::erdos_renyi_iterator<boost::minstd_rand, graphtype> ERGen;
 	boost::minstd_rand gen;
 	g = graphtype(ERGen(gen, N, p), ERGen(), N);
+
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+	{
+		g[*vi].covered = false;
+	}
 
 	SC_vertex = -1;
 }
@@ -183,6 +189,13 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
     }
     cout<<endl;*/
 
+	//set the 'covered' value of each vertex to false
+	graph_traits<graphtype>::vertex_iterator vii, vii_end;
+	for (tie(vii, vii_end) = vertices(g); vii != vii_end; ++vii)
+	{
+		g[*vii].covered = false;
+	}
+
 	SC_vertex = -1;
 	
 }
@@ -256,6 +269,13 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 			g_edges++;
 		}
 		g_verticies++;
+	}
+
+	//set the 'covered' value of each vertex to false
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+	{
+		g[*vi].covered = false;
 	}
 
 	SC_vertex = -1;
@@ -332,6 +352,13 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	{
 		cout<<"You specified an unsupported mode....exiting"<<endl;
 		exit(0);
+	}
+
+	//set the 'covered' value of each vertex to false
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+	{
+		g[*vi].covered = false;
 	}
 
 	SC_vertex = -1;
@@ -551,18 +578,32 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 {
 	vector<int> nodesRequested;
 	int randvert = 0;
+	graph_traits<graphtype>::vertex_descriptor randvertdescr;
 	
 	switch(strategy)
 	{
 	case 1:
 		{
+			int max_itr = num_vertices(g) * 10;
+			int count = 0;
 			//cout<<"DEBUG: Using Strategy 1 to pick requested nodes"<<endl;
 			while(nodesRequested.size() < (unsigned int)budget)
 			{
 				randvert = rand() % num_vertices(g);
-				if(randvert != SC_vertex)  //also add check here that the node hasn't been requested before and that the node isnt already connected to SC
+				randvertdescr = vertex(randvert,g);
+				if( randvert != SC_vertex  && g[randvertdescr].covered == false  ) 
 				{
 					nodesRequested.push_back(randvert);
+					count = 0;  //reset the count of ineligible nodes
+				}
+				else
+				{
+					count++;	//increase the count of ineligible nodes
+				}
+				if(count > max_itr)  {
+					break;  //if we are looping for too long without finding an elegible node then break out of loop
+				}
+				else{
 				}
 			}
 		}
@@ -678,10 +719,15 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 	{
 		int numCN;
 		double randnum;
-
 		graph_traits<graphtype>::vertex_descriptor u, SC;
+
+		//get the vertex desc of the requested node
 		u = vertex(nodesRequested[i], g);
+		//set the vertex's covered value to true since the node can't be requested again
+		g[u].covered = true;
+		
 		SC = vertex(SC_vertex,g);
+
 		//find degree of node for ego
 		//cout<<"out deg: "<<out_degree(nodesRequested[i],g)<<endl;
 		//cout<<"in deg: "<<in_degree(nodesRequested[i],g)<<endl;
@@ -732,7 +778,7 @@ double MyGraph<graphtype>::calcTrustVal()
 
 	TV = (double)SC_deg / (double)total_vertices;
 
-	cout<<"TRUST VALUE (SC_deg/total vertices): "<<TV<<endl;
+	//cout<<"TRUST VALUE (SC_deg/total vertices): "<<TV<<endl;
 
 	return TV;
 }
@@ -740,7 +786,7 @@ double MyGraph<graphtype>::calcTrustVal()
 
 
 template <class graphtype>
-int MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double po, double alpha, int budget, int strategy)
+double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,double po, double alpha, int budget, int strategy)
 {
 	vector<int> nodesRequested;
 	double TrustValue;

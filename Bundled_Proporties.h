@@ -2,9 +2,9 @@
 
 //Generic Graph Class///////////////////////////////////
 struct MyNode {
-    int x;
+	int x;
 	std::string name;
-	bool requested;
+	bool covered;
 };
 
 struct MyEdge {

@@ -31,16 +31,19 @@ int main()
 	G_real.setSC_vertex( SC_vert );
 	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;
 	
-	int total_itr = 200;
+	double TrustValue = 0;
+	int total_itr = 100;
 	for(int i=0; i<total_itr; i++)
 	{
-		G_real.Infiltrate(.1, //joion
+		TrustValue = G_real.Infiltrate(.1, //joion
 						  .01, //leave
-						  .4,  //pt
-						  .2,  //po
+						  .7,  //pt
+						  .7,  //po
 						  1,   //alpha
-						  5,   //budget
+						  1,   //budget (number of nodes requested at each itr)
 						  1);  //strategy
+
+		cout<<"Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
 	}
 	
 	///////////////////////////////////////////////END TBI STUFF///////////////////////
