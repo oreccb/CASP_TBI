@@ -34,7 +34,7 @@ private:
 	vector<int> genRequestList(int strategy, int budget);  //generate the list of nodes SC will request based on strat and budget
 	int update(vector<int> nodesRequested, double pt, double po, double alpha);  //update network with connections that were accepted due to model
 	double calcTrustVal();							//calculate the trust value
-	double calcProbabilities(double pt, double po, double alpha, int nodeDeg, int numCN);
+	double calcProbabilities(double pt, double po, double alpha, int nodeDeg, int numCN);   //calculates the probability that a certain node will accept the request based on the model
 
 	graphtype g;									//graph
 	int SC_vertex;									//stealth company vertex
@@ -711,7 +711,7 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 	double P;   //total probability that the node will accept the connection
 
 	int nodeDeg;
-	int commonNeighbors;
+	//int commonNeighbors;
 	
 
 	//for each requested vertices
