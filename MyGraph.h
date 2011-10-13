@@ -23,6 +23,7 @@ using namespace boost;
 
 #define DEFAULT_GRAPH_SIZE 100
 
+//#define DEBUG
 
 //Graph Class
 template <class graphtype>
@@ -601,6 +602,7 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 					count++;	//increase the count of ineligible nodes
 				}
 				if(count > max_itr)  {
+					//cout<<"exceeded max limit to find eligible node"<<endl;
 					break;  //if we are looping for too long without finding an elegible node then break out of loop
 				}
 				else{
@@ -728,26 +730,44 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 		
 		SC = vertex(SC_vertex,g);
 
+#ifdef DEBUG
+		cout<<"Processing Request for node "<<nodesRequested[i]<<" who is "<<g[u].name<<endl;
+#endif
+
 		//find degree of node for ego
 		//cout<<"out deg: "<<out_degree(nodesRequested[i],g)<<endl;
 		//cout<<"in deg: "<<in_degree(nodesRequested[i],g)<<endl;
 		nodeDeg = out_degree( u ,g);
+#ifdef DEBUG
+		cout<<"Degree of node "<<nodesRequested[i]<<": "<<nodeDeg<<endl;
+#endif
 
 		//find neighbors between SC and node for trust
 		numCN = numCommonNeighbors(SC_vertex, nodesRequested[i]);
+#ifdef DEBUG
+		cout<<"Number of neighbors in common with SC for node "<<nodesRequested[i]<<": "<<numCN<<endl;
+#endif
 
 		//calculate the PT and PE then P
 		P = calcProbabilities(pt, po, alpha, nodeDeg, numCN);
+#ifdef DEBUG
+		cout<<"Probability for node "<<nodesRequested[i]<<" to accept request is: "<<P<<endl;
+#endif
 
 		//randomly determine whether the request will be accepted
 		randnum = (double)rand() / (double)(RAND_MAX + 1);
-		//cout<<"DEBUG: randum num for adding edge: "<<randnum<<endl;
+#ifdef DEBUG
+		cout<<"DEBUG: randum num for adding edge: "<<randnum<<endl;
+#endif
 
 		if(randnum < P)
 		{
 			//if yes then add the edge and increment the total number of edges added
 			add_edge(u , SC, g);
 			total = total + 1;
+#ifdef DEBUG
+			cout<<"SC is now connected to "<<g[u].name<<" !!!"<<endl;
+#endif
 		}
 		else
 		{
@@ -777,8 +797,12 @@ double MyGraph<graphtype>::calcTrustVal()
 	total_vertices = num_vertices(g);
 
 	TV = (double)SC_deg / (double)total_vertices;
+	
+#ifdef DEBUG
+	cout<<"TRUST VALUE (SC_deg/total vertices): "<<TV<<endl;
+	cout<<"Trust value = "<<SC_deg<<"/"<<total_vertices<<endl;
+#endif
 
-	//cout<<"TRUST VALUE (SC_deg/total vertices): "<<TV<<endl;
 
 	return TV;
 }
@@ -807,7 +831,10 @@ double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,doubl
 
 	TrustValue = calcTrustVal();
 	//calculate the trust value and that is the return value
-
+	
+#ifdef DEBUG
+		cout<<endl<<endl;
+#endif
 	
 	return TrustValue;
 

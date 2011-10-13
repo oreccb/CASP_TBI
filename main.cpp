@@ -1,6 +1,8 @@
 #include "MyGraph.h"
 #include <time.h>
 
+int presentation2(double join,double leave, double pt, double po, int alpha, int budget, int strategy);
+
 int main()
 {
 	//graph types
@@ -14,6 +16,9 @@ int main()
 	//Time the Execution of the code
 	clock_t start = clock();
 
+	//initialize seed
+	srand( (int)time(NULL) );
+
 	//MyGraph<undirGraph> G_real("BrianInMap.txt",0);
 	
 	//MyGraph<undirGraph> G_real2(G_real);
@@ -24,72 +29,17 @@ int main()
 	//cout<<G_real.computeClusteringCoefficient()<<endl<<endl;
 
 	//////////////////////////////////////////////////Presentation 2/////////////////////////
-	//will need to write out data to file
-	ofstream outfile;
-	outfile.open("results.csv");
+	ofstream out;
+	out.open("thresholdtimeresults.csv");
 	
-	//initialize seed
-	srand( (int)time(NULL) );
-
-	//need to add the SC node and set the SC_vertex value in class
-	/*int SC_vert = G_real.TBI_add_vertex();
-	G_real.setSC_vertex( SC_vert );
-	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;*/
-	
-	double TrustValue = 0;
-	int total_itr = 200;
-	int num_sim = 500;
-
-	vector<double> results(total_itr);
-	//init results vector
-	for(int i =0;i<total_itr;i++)
+	int timeforsuc;
+	for(double pt = .05; pt<1.0; pt = pt + .05)
 	{
-		results[i] = 0.0;
+
+		timeforsuc = presentation2(0,0, pt , .5, 1, 1, 1);
+		cout<<pt<<","<<timeforsuc<<endl;
+		out<<pt<<","<<timeforsuc<<endl;
 	}
-
-	//temporary
-	MyGraph<undirGraph> G_tempreal("BrianInMap.txt",0);
-
-	//do the simulation 100 times and average results
-	for(int k=0; k<num_sim; k++)
-	{
-		//HACK - need a new graph at each itr OBVIOUSLY!
-		vector<int> R;
-		R = G_tempreal.degOfVertices();
-		MyGraph<undirGraph> G_real(R);
-		//MyGraph<undirGraph> G_real("BrianInMap.txt",0);
-		//MyGraph<undirGraph> G_real(146,(double)((double)2636.0/(((double)146.0*(double)145.0)/2.0)) );
-		int SC_vert = G_real.TBI_add_vertex();
-		G_real.setSC_vertex( SC_vert );
-		//cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;
-
-		//do 'total_itr' timesteps of simulation
-		for(int i=0; i<total_itr; i++)
-		{
-			TrustValue = G_real.Infiltrate(0, //join
-							  0, //leave
-							  .3,  //pt
-							  .5,  //po
-							  1,   //alpha
-							  1,   //budget (number of nodes requested at each itr)
-							  1);  //strategy
-
-			//cout<<"Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
-			//outfile<<"Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
-			results[i] = results[i] + TrustValue;
-		}
-
-	}
-
-
-	//take average of the simulations
-	for(int i =0;i<total_itr;i++)
-	{
-		results[i] = results[i] / (double)num_sim;
-		cout<<"Average Trust Value at timestep "<<i<<": "<<results[i]<<endl;
-		outfile<<i<<","<<results[i]<<endl;
-	}
-	
 
 	///////////////////////////////////////////////END PRESENTATION 2///////////////////////
 
