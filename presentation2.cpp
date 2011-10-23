@@ -17,7 +17,7 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 	
 	double TrustValue = 0;
 	int total_itr = 20000;
-	int num_sim = 2;
+	int num_sim = 1;
 
 	vector<double> results(total_itr);
 	//init results vector
@@ -26,9 +26,15 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 		results[i] = 0.0;
 	}
 
+	clock_t start = clock();
+	cout<<"starting to read in data"<<endl;
+
 	//temporary, use for getting R-type
-	//MyGraph<undirGraph> G_tempreal("BrianInMap.txt",0);
-	MyGraph<undirGraph> G_real_first("BrianInMap.txt",1);
+	MyGraph<undirGraph> G_real_first("Email-Enron.txt",0);
+	//MyGraph<undirGraph> G_real_first("BrianInMap.txt",1);
+
+	clock_t ends = clock();
+	cout <<endl<< "Running Time to read in data : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
 
 	//do the simulation 100 times and average results
 	for(int k=0; k<num_sim; k++)
@@ -37,12 +43,17 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 		//vector<int> R;
 		//R = G_tempreal.degOfVertices();
 		//MyGraph<undirGraph> G_real(R);
+		cout<<"making new graph"<<clock()<<endl;
 		MyGraph<undirGraph> G_real(G_real_first);
+		cout<<"done making new graph"<<clock()<<endl;
 		//MyGraph<undirGraph> G_real(146,(double)((double)2636.0/(((double)146.0*(double)145.0)/2.0)) );
 		int SC_vert = G_real.TBI_add_vertex();
 		G_real.setSC_vertex( SC_vert );
 		//cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;
+		
 
+		//initialize the P attribute
+		G_real.initP(pt,po,alpha);
 		//do 'total_itr' timesteps of simulation
 		for(int i=0; i<total_itr; i++)
 		{
@@ -54,7 +65,7 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 							  budget,   //budget (number of nodes requested at each itr)
 							  strategy);  //strategy
 
-			//cout<<"Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
+			cout<<"Simulation "<<k<<", Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
 			//outfile<<"Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
 			results[i] = results[i] + TrustValue;
 		}

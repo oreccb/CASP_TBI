@@ -5,6 +5,8 @@ struct MyNode {
 	int x;
 	std::string name;
 	bool covered;
+	int CNeigh;
+	double P;
 };
 
 struct MyEdge {

@@ -31,19 +31,19 @@ int main()
 
 	//////////////////////////////////////////////////Presentation 2/////////////////////////
 	ofstream out;
-	out.open("thresholdtimeresults_ENRONFIRSTTESTRANDOM.csv");
+	out.open("thresholdtimeresults_ENRONFIRSTTESTGreedy.csv");
 	
 	int timeforsuc;
 	double frac = 0;
 	for(double pt = .05; pt<1.0; pt = pt + .05)
 	{
 
-		frac = presentation2(0.0,0.0, pt, .5, 2, 1, 1);
+		frac = presentation2(0.0,0.0, pt, .5, 2, 1, 2);
 		cout<<pt<<","<<frac<<endl;
 		out<<pt<<","<<frac<<endl;
 	}
 
-	//presentation2(0,0,.3,.5,2,1,1);
+	//presentation2(0,0,.5,.5,1,1,2);
 
 	///////////////////////////////////////////////END PRESENTATION 2///////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////

@@ -25,6 +25,9 @@ using namespace boost;
 
 //#define DEBUG
 
+bool mysortt(pair<int,double> pa, pair<int,double> pb);
+
+
 //Graph Class
 template <class graphtype>
 class MyGraph
@@ -32,17 +35,17 @@ class MyGraph
 private:
 	int nodeLeft(double leave);						//removes vertices with probability 'leave'
 	bool nodeJoin(double join);						//adds a node based on probability 'join', returns a bool if a vertex was added
-	vector<int> genRequestList(int strategy, int budget);  //generate the list of nodes SC will request based on strat and budget
+	vector<int> genRequestList(double pt, double po, double alpha, int strategy, int budget);  //generate the list of nodes SC will request based on strat and budget
 	int update(vector<int> nodesRequested, double pt, double po, double alpha);  //update network with connections that were accepted due to model
 	double calcTrustVal();							//calculate the trust value
 	double calcProbabilities(double pt, double po, double alpha, int nodeDeg, int numCN);   //calculates the probability that a certain node will accept the request based on the model
 
 	graphtype g;									//graph
 	int SC_vertex;									//stealth company vertex
-	vector<int> CNeigh;								//number of common neighbors of each vertex
+	//vector<int> CNeigh;								//number of common neighbors of each vertex CAUTION: NOW IN bundled_proporties
 
 public:
-	
+
 	MyGraph();										//create graph with DEFAULT_GRAPH_SIZE verticies and no edges
 	MyGraph(int N, double p);						//create random erdos renyi graph
 	MyGraph(vector<int> R);							//create graph with degree distribution R
@@ -63,7 +66,10 @@ public:
 	int getSC_vertex();								//get the SC vertex index
 
 	int numCommonNeighbors(int SC, int v);			//Calc the number of common neighbors between 2 vertices of g
-	int updateNumCommonNeighbors(int u);			//update the CNeigh vector with the new common meighbor count for adjacent nodes to one that has been added
+	int updateNumCommonNeighborsANDP(double pt,double po, double alpha,int u);  //update the CNeigh vector with the new common meighbor count for adjacent nodes to one that has been added
+
+	void initP(double pt, double po, double alpha);  //initialize theh P attribute for each node
+	void updateP(double pt, double po, double alpha, int u);  //update the P attribute of a node
 
 	double Infiltrate(									//Run the trust based infiltration simulation
 		double join,	//probability that an actor joins the network
@@ -86,12 +92,15 @@ public:
 template <class graphtype>
 MyGraph<graphtype>::MyGraph()
 {
+
 	g = graphtype(DEFAULT_GRAPH_SIZE);
 	SC_vertex = -1;
 	
-	for(int i=0;i<num_vertices(g);i++)
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
-		CNeigh.push_back(0);
+		g[*vi].covered = false;
+		g[*vi].CNeigh = 0
 	}
 }
 
@@ -108,13 +117,10 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
+		g[*vi].CNeigh = 0
 	}
 
-	SC_vertex = -1;
-	for(int i=0;i<num_vertices(g);i++)
-	{
-		CNeigh.push_back(0);
-	}
+	
 }
 
 //We are making a random graph with specified deg distribution R
@@ -125,7 +131,7 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 	unsigned int i;
 	unsigned int j;
 	graph_traits<graphtype>::vertex_iterator vi, vi_end;
-    graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+   // graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
     graph_traits<graphtype>::edge_iterator ei, ei_end;
 
 	typename graph_traits<graphtype>::edge_descriptor ed;
@@ -209,13 +215,10 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 	for (tie(vii, vii_end) = vertices(g); vii != vii_end; ++vii)
 	{
 		g[*vii].covered = false;
+		g[*vii].CNeigh = 0;
 	}
 
 	SC_vertex = -1;
-	for(int i=0;i<num_vertices(g);i++)
-	{
-		CNeigh.push_back(0);
-	}
 	
 }
 
@@ -295,13 +298,10 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
+		g[*vi].CNeigh = 0;
 	}
 
 	SC_vertex = -1;
-	for(int i=0;i<num_vertices(g);i++)
-	{
-		CNeigh.push_back(0);
-	}
 }
 
 //make graph based on real data from file
@@ -311,7 +311,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	//working variables
 	graph_traits<graphtype>::edge_descriptor ed;
 	bool inserted;
-	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+	//graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
 	graph_traits<graphtype>::edge_iterator ei, ei_end;
 	graph_traits<graphtype>::vertex_descriptor vert1, u, v;
 
@@ -419,9 +419,11 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	}
 
 	SC_vertex = -1;
-	for(int i=0;i<num_vertices(g);i++)
+	
+	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+	for(tie(vi2, vi2_end) = vertices(g); vi2 != vi2_end; ++vi2)
 	{
-		CNeigh.push_back(0);
+		g[*vi2].CNeigh = 0;
 	}
 }
 
@@ -570,6 +572,7 @@ void MyGraph<graphtype>::setSC_vertex( int v )
 	SC_vertex = v;
 	SC = vertex(SC_vertex, g);
 	g[SC].name = "Stealth Company";
+	g[SC].covered = true;
 	
 }
 template <class graphtype>
@@ -630,12 +633,13 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 	return added;
 }
 
+
 //return a vector of vertex indicies that the SC will request a connection based on the strategy
 //Budget is an integer specifying how many requests the SC can send per timestep
 //Strategy 1: random selection (use random number to find the requested nodes)
 //Strategy 2: preferential selection (send request the connections of people SC is currently connected to)
 template <class graphtype>
-vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
+vector<int> MyGraph<graphtype>::genRequestList(double pt, double po, double alpha, int strategy, int budget)
 {
 	vector<int> nodesRequested;
 	int randvert = 0;
@@ -670,12 +674,45 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 			}
 		}
 		break;
-	case 2:
+	case 2:  //pick the nodes that have the highest trust value
 		{
-			//cout<<"DEBUG: Using Strategy 2 to pick requested nodes"<<endl;
+			//cout<<"DEBUG: Using Strategy 2 to pick requested nodes: greedy approach, pick nodes that have the highest chance to accept reuqest"<<endl;
+		
+			//this assumes that we have an up to date vector of probs for each node
+			//loop over the vector of probs and find the highest ones and request them
+			
+			int count = 0;
+			//cout<<"DEBUG: Using Strategy 1 to pick requested nodes"<<endl;
+
+			int i = 0;
+			vector< pair<int,double> > temp;
+			graph_traits<graphtype>::vertex_iterator vi, vi_end;
+			
+			for (tie(vi, vi_end) = vertices(g), i=0; vi != vi_end; ++vi, ++i) 
+			{
+				temp.push_back(pair<int,double>(i,g[*vi].P));
+			}
+			sort(temp.begin(),temp.end(),mysortt);
+			int j = 0;
+			while(nodesRequested.size() < (unsigned int)budget)
+			{
+				randvertdescr = vertex(temp[j].first,g);
+				if( temp[j].first != SC_vertex  && g[randvertdescr].covered == false  ) 
+				{
+					nodesRequested.push_back(temp[j].first);
+					//cout<<"adding node "<<temp[j].first<<"to list cuz of prob"<<temp[j].second<<endl;
+					
+				}
+				j++;
+				if(j >= temp.size())
+				{
+					break;
+				}
+			}
 
 		}
 		break;
+
 	default:
 		{
 			cout<<"Invalid strategy, Exiting..."<<endl;
@@ -734,7 +771,7 @@ int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
 
 
 template <class graphtype>
-int MyGraph<graphtype>::updateNumCommonNeighbors(int u)
+int MyGraph<graphtype>::updateNumCommonNeighborsANDP(double pt, double po, double alpha, int u)
 {
 	graph_traits<graphtype>::vertex_descriptor U;
 	graph_traits<graphtype>::adjacency_iterator adj, adj_end;
@@ -744,8 +781,12 @@ int MyGraph<graphtype>::updateNumCommonNeighbors(int u)
 	for (tie(adj, adj_end) = adjacent_vertices(U,g); adj != adj_end; ++adj) //loop through the adjacent vertices and update their CNeigh val
 	{
 		//cout<<(int)*adj<<endl;
-		CNeigh[ (int)*adj ]++;
+		//CNeigh[ (int)*adj ]++;  //old way
 		//cout<<(int)*adj<<endl;
+		g[*adj].CNeigh++;
+
+		updateP(pt,po,alpha,*adj);
+		
 	}
 	
 	return 0;
@@ -777,6 +818,44 @@ double MyGraph<graphtype>::calcProbabilities(double pt, double po, double alpha,
 }
 
 
+//function that initializes everyone's P attribute to just their ego part since noone has linked with SC yet
+template <class graphtype>
+void MyGraph<graphtype>::initP(double pt, double po, double alpha)
+{
+	int k;
+	int d;
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	//loop through vertices
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) //loop through the adjacent vertices and update their CNeigh val
+	{
+		k = g[*vi].CNeigh;
+		d = out_degree(*vi,g);
+		g[*vi].P = calcProbabilities(pt,po,alpha,d,k);
+	}
+	
+
+	return;
+}
+
+//updates the P of one node, called from updateNumCommonNeighborsANDP(..)
+template <class graphtype>
+void MyGraph<graphtype>::updateP(double pt, double po, double alpha, int u)
+{
+	int k,d;
+	graph_traits<graphtype>::vertex_descriptor v;
+
+	v = vertex(u,g);
+	
+	//cout<<"old P: "<<g[v].P<<endl;
+	k = g[v].CNeigh;
+	d = out_degree(v,g);
+	g[v].P = calcProbabilities(pt,po,alpha,d,k);
+	//cout<<"new P: "<<g[v].P<<endl<<endl;
+	return;
+}
+
+
+
 
 
 //function to input a list of nodes to request and the probabilities associated with the model to find out which nodes accepted the connection
@@ -802,7 +881,7 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 	//for each requested vertices
 	for(unsigned int i =0; i<nodesRequested.size(); i++)
 	{
-		int numCN;
+		//int numCN;
 		double randnum;
 		graph_traits<graphtype>::vertex_descriptor u, SC;
 
@@ -820,20 +899,21 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 		//find degree of node for ego
 		//cout<<"out deg: "<<out_degree(nodesRequested[i],g)<<endl;
 		//cout<<"in deg: "<<in_degree(nodesRequested[i],g)<<endl;
-		nodeDeg = out_degree( u ,g);
-#ifdef DEBUG
-		cout<<"Degree of node "<<nodesRequested[i]<<": "<<nodeDeg<<endl;
-#endif
-
-		//find neighbors between SC and node for trust
-		//numCN = numCommonNeighbors(SC_vertex, nodesRequested[i]);  old way of finding neighbors
-		numCN = CNeigh[nodesRequested[i]];
-#ifdef DEBUG
-		cout<<"Number of neighbors in common with SC for node "<<nodesRequested[i]<<": "<<numCN<<endl;
-#endif
-
-		//calculate the PT and PE then P
-		P = calcProbabilities(pt, po, alpha, nodeDeg, numCN);
+//		nodeDeg = out_degree( u ,g);
+//#ifdef DEBUG
+//		cout<<"Degree of node "<<nodesRequested[i]<<": "<<nodeDeg<<endl;
+//#endif
+//
+//		//find neighbors between SC and node for trust
+//		numCN = numCommonNeighbors(SC_vertex, nodesRequested[i]);  old way of finding neighbors
+//		numCN = g[u].CNeigh;  //new way that is more efficient
+//#ifdef DEBUG
+//		cout<<"Number of neighbors in common with SC for node "<<nodesRequested[i]<<": "<<numCN<<endl;
+//#endif
+//
+//		//calculate the PT and PE then P
+//		P = calcProbabilities(pt, po, alpha, nodeDeg, numCN);
+		P = g[u].P;
 #ifdef DEBUG
 		cout<<"Probability for node "<<nodesRequested[i]<<" to accept request is: "<<P<<endl;
 #endif
@@ -847,7 +927,11 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 		if(randnum < P)
 		{
 			//update the common neighbors vector before actually adding the edge due to the nature of the function 
-			updateNumCommonNeighbors(nodesRequested[i]);
+			updateNumCommonNeighborsANDP(pt,po,alpha,nodesRequested[i]);
+
+			//add function that updates the P attribute of nodes affected
+			//updateP(pt, po, alpha, nodesRequested[i]);
+
 			//if yes then add the edge and increment the total number of edges added
 			add_edge(u , SC, g);
 			total = total + 1;
@@ -907,10 +991,6 @@ int MyGraph<graphtype>::calcBenchVal()
 
 	TV = SC_deg;
 	
-#ifdef DEBUG
-	cout<<"TRUST VALUE (SC_deg/total vertices): "<<TV<<endl;
-	cout<<"Trust value = "<<SC_deg<<"/"<<total_vertices<<endl;
-#endif
 
 	return TV;
 }
@@ -932,7 +1012,7 @@ double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,doubl
 	
 	
 	//find the nodes that the stealth company requested
-	nodesRequested = genRequestList(strategy, budget);
+	nodesRequested = genRequestList(pt,po,alpha,strategy, budget);
 
 	
 	//find the nodes that accepted the connection requests and add them to the network
