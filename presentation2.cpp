@@ -1,13 +1,13 @@
 #include "MyGraph.h"
 #include <time.h>
 
-int presentation2(double join,double leave, double pt, double po, int alpha, int budget, int strategy)
+double presentation2(double join,double leave, double pt, double po, int alpha, int budget, int strategy)
 {
 	typedef adjacency_list<setS,vecS,undirectedS, MyNode, MyEdge> undirGraph;
 
 	//will need to write out data to file
 	ofstream outfile;
-	outfile.open("results.csv");
+	outfile.open("results_ENRON.csv");
 
 
 	//need to add the SC node and set the SC_vertex value in class
@@ -16,8 +16,8 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;*/
 	
 	double TrustValue = 0;
-	int total_itr = 200;
-	int num_sim = 50;
+	int total_itr = 20000;
+	int num_sim = 2;
 
 	vector<double> results(total_itr);
 	//init results vector
@@ -26,8 +26,9 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 		results[i] = 0.0;
 	}
 
-	//temporary
-	MyGraph<undirGraph> G_tempreal("BrianInMap.txt",0);
+	//temporary, use for getting R-type
+	//MyGraph<undirGraph> G_tempreal("BrianInMap.txt",0);
+	MyGraph<undirGraph> G_real_first("BrianInMap.txt",1);
 
 	//do the simulation 100 times and average results
 	for(int k=0; k<num_sim; k++)
@@ -36,7 +37,7 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 		//vector<int> R;
 		//R = G_tempreal.degOfVertices();
 		//MyGraph<undirGraph> G_real(R);
-		MyGraph<undirGraph> G_real("BrianInMap.txt",0);
+		MyGraph<undirGraph> G_real(G_real_first);
 		//MyGraph<undirGraph> G_real(146,(double)((double)2636.0/(((double)146.0*(double)145.0)/2.0)) );
 		int SC_vert = G_real.TBI_add_vertex();
 		G_real.setSC_vertex( SC_vert );
@@ -69,18 +70,20 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 		outfile<<i<<","<<results[i]<<endl;
 	}
 	
-	int timetillsuccess = 200;
+	//int timetillsuccess = 200;
 	//find the time to get 30% of network
-	for(int i =0;i<total_itr;i++)
-	{
-		if(results[i] > .10)
-		{
-			cout<<"Time to get 10% of network: "<<i<<" "<<results[i]<<endl;
-			timetillsuccess = i;
-			break;
-		}
-		//outfile<<i<<","<<results[i]<<endl;
-	}
+	//for(int i =0;i<total_itr;i++)
+	//{
+	//	if(results[i] > .15)
+	//	{
+	//		cout<<"Time to get 10% of network: "<<i<<" "<<results[i]<<endl;
+	//		timetillsuccess = i;
+	//		break;
+	//	}
+	//	//outfile<<i<<","<<results[i]<<endl;
+	//}
 
-	return timetillsuccess;
+	//return timetillsuccess;
+	return results[ total_itr-1 ];
+	
 }

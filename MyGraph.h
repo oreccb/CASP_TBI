@@ -39,6 +39,7 @@ private:
 
 	graphtype g;									//graph
 	int SC_vertex;									//stealth company vertex
+	vector<int> CNeigh;								//number of common neighbors of each vertex
 
 public:
 	
@@ -61,7 +62,8 @@ public:
 	void setSC_vertex( int v );						//set the SC vertex index
 	int getSC_vertex();								//get the SC vertex index
 
-	int numCommonNeighbors(int u, int v);			//Calc the number of common neighbors between 2 vertices of g
+	int numCommonNeighbors(int SC, int v);			//Calc the number of common neighbors between 2 vertices of g
+	int updateNumCommonNeighbors(int u);			//update the CNeigh vector with the new common meighbor count for adjacent nodes to one that has been added
 
 	double Infiltrate(									//Run the trust based infiltration simulation
 		double join,	//probability that an actor joins the network
@@ -71,7 +73,10 @@ public:
 		double alpha,	//exponentiating factor in calculating ego probability
 		int budget,	//Budget of stealth company (number of connection requests sent out at each timestep
 		int stratagy //stratagy of stealth company is picking who they request
-		);								
+		);	
+
+	double Infiltrate_alt(double join, double leave, double pt,double po, double alpha, int budget, int strategy);
+	int calcBenchVal();  //calc the benchmark value
 	
 };
 
@@ -83,6 +88,11 @@ MyGraph<graphtype>::MyGraph()
 {
 	g = graphtype(DEFAULT_GRAPH_SIZE);
 	SC_vertex = -1;
+	
+	for(int i=0;i<num_vertices(g);i++)
+	{
+		CNeigh.push_back(0);
+	}
 }
 
 
@@ -101,6 +111,10 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	}
 
 	SC_vertex = -1;
+	for(int i=0;i<num_vertices(g);i++)
+	{
+		CNeigh.push_back(0);
+	}
 }
 
 //We are making a random graph with specified deg distribution R
@@ -198,6 +212,10 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 	}
 
 	SC_vertex = -1;
+	for(int i=0;i<num_vertices(g);i++)
+	{
+		CNeigh.push_back(0);
+	}
 	
 }
 
@@ -280,6 +298,10 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 	}
 
 	SC_vertex = -1;
+	for(int i=0;i<num_vertices(g);i++)
+	{
+		CNeigh.push_back(0);
+	}
 }
 
 //make graph based on real data from file
@@ -291,19 +313,59 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	bool inserted;
 	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
 	graph_traits<graphtype>::edge_iterator ei, ei_end;
-	graph_traits<graphtype>::vertex_descriptor vert1;
+	graph_traits<graphtype>::vertex_descriptor vert1, u, v;
 
+	int a;
+	int b;
 	int temp;
 	string a_name;
 	string line;
 	vector< vector<int> > edgelist;
 	vector<int> nextedges;
 
-	//////////This mode is for the sample linkedIn data from Brian's InMap/////////////
+	
+	//This mode is for the Enron email data set
+	//This data was obtained from http://snap.stanford.edu/data/email-Enron.html
 	if(mode == 0)              
 	{
 		ifstream LI_inp;
 		//We should be opening BrianInMap.txt which is the sample network data
+		LI_inp.open(datafile.c_str());
+		
+		for(int i=0; i<36692; i++)
+		{
+			vert1 = add_vertex(g);
+		}
+
+
+		//loop through each line of file
+		while ( getline(LI_inp, line) )
+		{
+			//make each line like an input stream so we can manipulate easier
+			istringstream iss(line);
+			
+			//cout<<line<<endl; //dubugging
+
+			
+			
+			iss >> a;
+			iss >> b;
+		
+			//u = vertex(a,g);
+			//v = vertex(b,g);
+			
+		 
+			//add edge between nodes u and v
+			tie(ed, inserted) = add_edge(a,b, g);
+		}
+
+	}
+	///////////////////////////////////////////////////////////////////////////////////
+	//////////This mode is for the sample linkedIn data from Brian's InMap/////////////
+	else if(mode == 1)
+	{
+		ifstream LI_inp;
+		//We should be opening Email-Enron.txt which is the data of all the enron communication
 		LI_inp.open(datafile.c_str());
 		
 		//loop through each line of file
@@ -343,12 +405,6 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 
 		}
 	}
-
-
-	else if(mode == 1)
-	{
-		//this will probably be for the real linkedIn data file if/when I get it
-	}
 	else
 	{
 		cout<<"You specified an unsupported mode....exiting"<<endl;
@@ -363,6 +419,10 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	}
 
 	SC_vertex = -1;
+	for(int i=0;i<num_vertices(g);i++)
+	{
+		CNeigh.push_back(0);
+	}
 }
 
 
@@ -583,7 +643,7 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 	
 	switch(strategy)
 	{
-	case 1:
+	case 1:  //random strat
 		{
 			int max_itr = num_vertices(g) * 10;
 			int count = 0;
@@ -639,6 +699,7 @@ vector<int> MyGraph<graphtype>::genRequestList(int strategy, int budget)
 
 //find the number of common neighbors(adjacent verticies) between two nodes
 //in real terms, the number of common 1st level connections
+//this is decently slow
 template <class graphtype>
 int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
 {
@@ -669,6 +730,28 @@ int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
 
 	return count;
 }
+
+
+
+template <class graphtype>
+int MyGraph<graphtype>::updateNumCommonNeighbors(int u)
+{
+	graph_traits<graphtype>::vertex_descriptor U;
+	graph_traits<graphtype>::adjacency_iterator adj, adj_end;
+
+	U = vertex(u,g);
+
+	for (tie(adj, adj_end) = adjacent_vertices(U,g); adj != adj_end; ++adj) //loop through the adjacent vertices and update their CNeigh val
+	{
+		//cout<<(int)*adj<<endl;
+		CNeigh[ (int)*adj ]++;
+		//cout<<(int)*adj<<endl;
+	}
+	
+	return 0;
+}
+
+
 
 template <class graphtype>
 double MyGraph<graphtype>::calcProbabilities(double pt, double po, double alpha, int nodeDeg, int numCN)
@@ -743,7 +826,8 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 #endif
 
 		//find neighbors between SC and node for trust
-		numCN = numCommonNeighbors(SC_vertex, nodesRequested[i]);
+		//numCN = numCommonNeighbors(SC_vertex, nodesRequested[i]);  old way of finding neighbors
+		numCN = CNeigh[nodesRequested[i]];
 #ifdef DEBUG
 		cout<<"Number of neighbors in common with SC for node "<<nodesRequested[i]<<": "<<numCN<<endl;
 #endif
@@ -762,9 +846,12 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 
 		if(randnum < P)
 		{
+			//update the common neighbors vector before actually adding the edge due to the nature of the function 
+			updateNumCommonNeighbors(nodesRequested[i]);
 			//if yes then add the edge and increment the total number of edges added
 			add_edge(u , SC, g);
 			total = total + 1;
+			
 #ifdef DEBUG
 			cout<<"SC is now connected to "<<g[u].name<<" !!!"<<endl;
 #endif
@@ -807,6 +894,26 @@ double MyGraph<graphtype>::calcTrustVal()
 	return TV;
 }
 
+//calculate just the # of connections that the SC node has
+template <class graphtype>
+int MyGraph<graphtype>::calcBenchVal()
+{
+	int TV = 0;
+	int SC_deg = 0;
+
+	graph_traits<graphtype>::vertex_descriptor SC;
+	SC = vertex(SC_vertex,g);
+	SC_deg = out_degree(SC,g);
+
+	TV = SC_deg;
+	
+#ifdef DEBUG
+	cout<<"TRUST VALUE (SC_deg/total vertices): "<<TV<<endl;
+	cout<<"Trust value = "<<SC_deg<<"/"<<total_vertices<<endl;
+#endif
+
+	return TV;
+}
 
 
 template <class graphtype>
@@ -822,13 +929,16 @@ double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,doubl
 
 	//check if a node joins the network
 	//nodeJoin(join);
-
+	
+	
 	//find the nodes that the stealth company requested
 	nodesRequested = genRequestList(strategy, budget);
 
+	
 	//find the nodes that accepted the connection requests and add them to the network
 	update(nodesRequested, pt, po, alpha);
 
+	
 	TrustValue = calcTrustVal();
 	//calculate the trust value and that is the return value
 	
@@ -840,7 +950,37 @@ double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,doubl
 
 }
 
+//do the infiltration and just return the # of connections of SC
+template <class graphtype>
+double MyGraph<graphtype>::Infiltrate_alt(double join, double leave, double pt,double po, double alpha, int budget, int strategy)
+{
+	vector<int> nodesRequested;
+	int TrustValue;
+	//initialize seed  -- do this in main
+	//srand( (int)time(NULL) );
 
+	//check each node if it leaves the network
+	//nodeLeft(leave);  //don't call this yet since there are bugs
+
+	//check if a node joins the network
+	//nodeJoin(join);
+
+	//find the nodes that the stealth company requested
+	nodesRequested = genRequestList(strategy, budget);
+
+	//find the nodes that accepted the connection requests and add them to the network
+	update(nodesRequested, pt, po, alpha);
+
+	TrustValue = calcBenchVal();
+	//calculate the trust value and that is the return value
+	
+#ifdef DEBUG
+		cout<<endl<<endl;
+#endif
+	
+	return TrustValue;
+
+}
 
 
 
