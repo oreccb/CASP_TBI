@@ -17,7 +17,7 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 	
 	double TrustValue = 0;
 	int total_itr = 147;
-	int num_sim = 1;
+	int num_sim = 10;
 
 	vector<double> results(total_itr);
 	//init results vector

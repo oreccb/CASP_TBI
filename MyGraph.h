@@ -26,7 +26,7 @@ using namespace boost;
 
 #define DEFAULT_GRAPH_SIZE 100
 
-#define DEBUG
+//#define DEBUG
 
 bool mysortt(pair<int,double*> pa, pair<int,double*> pb);
 
