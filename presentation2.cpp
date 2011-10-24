@@ -16,7 +16,7 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;*/
 	
 	double TrustValue = 0;
-	int total_itr = 20000;
+	int total_itr = 147;
 	int num_sim = 1;
 
 	vector<double> results(total_itr);
@@ -29,12 +29,20 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 	clock_t start = clock();
 	cout<<"starting to read in data"<<endl;
 
-	//temporary, use for getting R-type
-	MyGraph<undirGraph> G_real_first("Email-Enron.txt",0);
-	//MyGraph<undirGraph> G_real_first("BrianInMap.txt",1);
+	
+	//MyGraph<undirGraph> G_real("Email-Enron.txt",0);
+	MyGraph<undirGraph> G_real("BrianInMap.txt",1);
+	//MyGraph<undirGraph> G_real(146,(double)((double)2636.0/(((double)146.0*(double)145.0)/2.0)) );
+
+	G_real.debugfile.open("debug.txt");
+
 
 	clock_t ends = clock();
 	cout <<endl<< "Running Time to read in data : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
+
+	int SC_vert = G_real.TBI_add_vertex();
+	G_real.setSC_vertex( SC_vert );
+	//cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;
 
 	//do the simulation 100 times and average results
 	for(int k=0; k<num_sim; k++)
@@ -43,17 +51,17 @@ double presentation2(double join,double leave, double pt, double po, int alpha, 
 		//vector<int> R;
 		//R = G_tempreal.degOfVertices();
 		//MyGraph<undirGraph> G_real(R);
-		cout<<"making new graph"<<clock()<<endl;
-		MyGraph<undirGraph> G_real(G_real_first);
-		cout<<"done making new graph"<<clock()<<endl;
-		//MyGraph<undirGraph> G_real(146,(double)((double)2636.0/(((double)146.0*(double)145.0)/2.0)) );
-		int SC_vert = G_real.TBI_add_vertex();
-		G_real.setSC_vertex( SC_vert );
-		//cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;
 		
+		
+		//reinitialize graph
+		G_real.reinit();
 
 		//initialize the P attribute
 		G_real.initP(pt,po,alpha);
+
+		//init or reinitialize the priority queue that is used in the greedy strategy
+		G_real.initq();
+
 		//do 'total_itr' timesteps of simulation
 		for(int i=0; i<total_itr; i++)
 		{

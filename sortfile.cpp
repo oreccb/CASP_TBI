@@ -4,7 +4,15 @@
 
 using namespace std;
 
-bool mysortt(pair<int,double> pa, pair<int,double> pb)
+struct CompareNode                                                                                  
 {
-	return pa.second > pb.second;
+  bool operator()(pair<int,double*> pa, pair<int,double*> pb) const
+  {
+    return *(pa.second) > *(pb.second);
+  }
+};
+
+bool mysortt(pair<int,double*> pa, pair<int,double*> pb)
+{
+	return *(pa.second) > *(pb.second);
 }

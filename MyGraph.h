@@ -8,12 +8,15 @@
 #include <sstream>
 #include <math.h>
 #include <algorithm>
+#include <queue>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/clustering_coefficient.hpp>
 #include <boost/graph/undirected_graph.hpp>
 #include <boost/graph/exterior_property.hpp>
 #include <boost/graph/erdos_renyi_generator.hpp>
 #include <boost/random/linear_congruential.hpp>
+
+//#include "sortfile.h"
 
 //file with bundled proporties to use in graphs
 #include "Bundled_Proporties.h"
@@ -23,10 +26,9 @@ using namespace boost;
 
 #define DEFAULT_GRAPH_SIZE 100
 
-//#define DEBUG
+#define DEBUG
 
-bool mysortt(pair<int,double> pa, pair<int,double> pb);
-
+bool mysortt(pair<int,double*> pa, pair<int,double*> pb);
 
 //Graph Class
 template <class graphtype>
@@ -43,8 +45,12 @@ private:
 	graphtype g;									//graph
 	int SC_vertex;									//stealth company vertex
 	//vector<int> CNeigh;								//number of common neighbors of each vertex CAUTION: NOW IN bundled_proporties
+	//priority_queue< pair<int,double>*, vector< pair<int,double>* >, CompareNode> q;  //this won't really work
+	list< pair<int,double*> > q;
 
+	
 public:
+	ofstream debugfile;
 
 	MyGraph();										//create graph with DEFAULT_GRAPH_SIZE verticies and no edges
 	MyGraph(int N, double p);						//create random erdos renyi graph
@@ -68,8 +74,10 @@ public:
 	int numCommonNeighbors(int SC, int v);			//Calc the number of common neighbors between 2 vertices of g
 	int updateNumCommonNeighborsANDP(double pt,double po, double alpha,int u);  //update the CNeigh vector with the new common meighbor count for adjacent nodes to one that has been added
 
+	void reinit();
 	void initP(double pt, double po, double alpha);  //initialize theh P attribute for each node
 	void updateP(double pt, double po, double alpha, int u);  //update the P attribute of a node
+	void initq();    //initialize the priority queue that is used for the greedy strat(#2)
 
 	double Infiltrate(									//Run the trust based infiltration simulation
 		double join,	//probability that an actor joins the network
@@ -329,12 +337,12 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	if(mode == 0)              
 	{
 		ifstream LI_inp;
-		//We should be opening BrianInMap.txt which is the sample network data
+		//We should be opening Email-Enron.txt which is the data of all the enron communication
 		LI_inp.open(datafile.c_str());
 		
 		for(int i=0; i<36692; i++)
 		{
-			vert1 = add_vertex(g);
+			add_vertex(g);
 		}
 
 
@@ -345,16 +353,13 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 			istringstream iss(line);
 			
 			//cout<<line<<endl; //dubugging
-
-			
-			
+		
 			iss >> a;
 			iss >> b;
 		
 			//u = vertex(a,g);
 			//v = vertex(b,g);
-			
-		 
+				 
 			//add edge between nodes u and v
 			tie(ed, inserted) = add_edge(a,b, g);
 		}
@@ -365,7 +370,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	else if(mode == 1)
 	{
 		ifstream LI_inp;
-		//We should be opening Email-Enron.txt which is the data of all the enron communication
+		//We should be opening BrianInMap.txt which is the sample network data
 		LI_inp.open(datafile.c_str());
 		
 		//loop through each line of file
@@ -431,6 +436,28 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////END CONSTRUCTORS//////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class graphtype>
+void MyGraph<graphtype>::reinit()
+{
+	graph_traits<graphtype>::vertex_descriptor SC;
+	SC = vertex(SC_vertex,g);
+	//clear edges of SC
+	clear_vertex(SC,g);
+
+	//make the covered and CNeigh attributes zero again
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) //loop through the adjacent vertices and update their CNeigh val
+	{
+		g[*vi].CNeigh = 0;
+		g[*vi].covered = false;
+	}
+	
+
+	return;
+}
+
+
 
 //This function computes the clustering coefficient of the graph g
 template <class graphtype>
@@ -634,12 +661,34 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 }
 
 
+template <class graphtype>
+void MyGraph<graphtype>::initq()
+{
+	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	int i =0;
+
+	//for(int i=0; i< q.size();i++)
+	//{
+		q.clear();
+	//}
+
+	for (tie(vi, vi_end) = vertices(g),i=0; vi != vi_end; ++vi,++i) 
+	{
+		
+		pair<int,double*> temp = pair<int,double*>(i,&g[*vi].P);
+		q.push_back(temp);
+	}
+	q.sort(mysortt);
+	
+	return;
+}
+
 //return a vector of vertex indicies that the SC will request a connection based on the strategy
 //Budget is an integer specifying how many requests the SC can send per timestep
 //Strategy 1: random selection (use random number to find the requested nodes)
-//Strategy 2: preferential selection (send request the connections of people SC is currently connected to)
+//Strategy 2: greedy selection (send request to the people who have the highest probability of accepting)
 template <class graphtype>
-vector<int> MyGraph<graphtype>::genRequestList(double pt, double po, double alpha, int strategy, int budget)
+vector<int> MyGraph<graphtype>::genRequestList(double pt, double po, double alpha, int budget,int strategy )
 {
 	vector<int> nodesRequested;
 	int randvert = 0;
@@ -649,7 +698,7 @@ vector<int> MyGraph<graphtype>::genRequestList(double pt, double po, double alph
 	{
 	case 1:  //random strat
 		{
-			int max_itr = num_vertices(g) * 10;
+			int max_itr = num_vertices(g) * 3;
 			int count = 0;
 			//cout<<"DEBUG: Using Strategy 1 to pick requested nodes"<<endl;
 			while(nodesRequested.size() < (unsigned int)budget)
@@ -678,33 +727,33 @@ vector<int> MyGraph<graphtype>::genRequestList(double pt, double po, double alph
 		{
 			//cout<<"DEBUG: Using Strategy 2 to pick requested nodes: greedy approach, pick nodes that have the highest chance to accept reuqest"<<endl;
 		
-			//this assumes that we have an up to date vector of probs for each node
+			//this assumes that we have an up to date vector of probs for each node(stored in nodes itself
 			//loop over the vector of probs and find the highest ones and request them
 			
 			int count = 0;
 			//cout<<"DEBUG: Using Strategy 1 to pick requested nodes"<<endl;
 
 			int i = 0;
-			vector< pair<int,double> > temp;
-			graph_traits<graphtype>::vertex_iterator vi, vi_end;
+			//vector< pair<int,double> > temp;
 			
-			for (tie(vi, vi_end) = vertices(g), i=0; vi != vi_end; ++vi, ++i) 
+			q.sort(mysortt);
+			
+			pair<int,double*> highestPnode;
+			
+			while(nodesRequested.size() < (unsigned int)budget && !q.empty())
 			{
-				temp.push_back(pair<int,double>(i,g[*vi].P));
-			}
-			sort(temp.begin(),temp.end(),mysortt);
-			int j = 0;
-			while(nodesRequested.size() < (unsigned int)budget)
-			{
-				randvertdescr = vertex(temp[j].first,g);
-				if( temp[j].first != SC_vertex  && g[randvertdescr].covered == false  ) 
+				highestPnode = q.front();  //get the first element, should be the guy with highest prob
+				q.pop_front();				//pop that guy from the list
+
+				randvertdescr = vertex(highestPnode.first,g);
+				if( highestPnode.first != SC_vertex  && g[randvertdescr].covered == false  ) 
 				{
-					nodesRequested.push_back(temp[j].first);
+					nodesRequested.push_back(highestPnode.first);
 					//cout<<"adding node "<<temp[j].first<<"to list cuz of prob"<<temp[j].second<<endl;
 					
 				}
-				j++;
-				if(j >= temp.size())
+				
+				if(q.empty() == true)
 				{
 					break;
 				}
@@ -741,29 +790,31 @@ template <class graphtype>
 int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
 {
 	int count = 0;
-	graph_traits<graphtype>::vertex_descriptor U, V;
-	graph_traits<graphtype>::adjacency_iterator adjv, adjv_end;
-	graph_traits<graphtype>::adjacency_iterator adju, adju_end;
+	//graph_traits<graphtype>::vertex_descriptor U, V;
+	//graph_traits<graphtype>::adjacency_iterator adjv, adjv_end;
+	//graph_traits<graphtype>::adjacency_iterator adju, adju_end;
 
-	U = vertex(u,g);
-	V = vertex(v,g);
+	//U = vertex(u,g);
+	//V = vertex(v,g);
 
-	
-	//cout<<"DEBUG: Common neighbors of "<<g[U].name<<" and "<<g[V].name<<endl;
-	for (tie(adju, adju_end) = adjacent_vertices(U,g); adju != adju_end; ++adju)
-	{
-		for (tie(adjv, adjv_end) = adjacent_vertices(V,g); adjv != adjv_end; ++adjv) //for each vi, find the vertices adjacent to vi
-		{
-		
-			if(*adju == *adjv)
-			{
-				//cout<<"DEBUG: "<<g[*adju].name<<" and  "<<g[*adjv].name<<endl;
-				count++;
-			}
-		}
-		
+	//
+	////cout<<"DEBUG: Common neighbors of "<<g[U].name<<" and "<<g[V].name<<endl;
+	//for (tie(adju, adju_end) = adjacent_vertices(U,g); adju != adju_end; ++adju)
+	//{
+	//	for (tie(adjv, adjv_end) = adjacent_vertices(V,g); adjv != adjv_end; ++adjv) //for each vi, find the vertices adjacent to vi
+	//	{
+	//	
+	//		if(*adju == *adjv)
+	//		{
+	//			//cout<<"DEBUG: "<<g[*adju].name<<" and  "<<g[*adjv].name<<endl;
+	//			count++;
+	//		}
+	//	}
+	//	
 
-	}
+	//}
+	cout<<"THIS IS AN OUTDATED FUNCTION"<<endl;
+	exit(1);
 
 	return count;
 }
@@ -786,6 +837,8 @@ int MyGraph<graphtype>::updateNumCommonNeighborsANDP(double pt, double po, doubl
 		g[*adj].CNeigh++;
 
 		updateP(pt,po,alpha,*adj);
+
+		
 		
 	}
 	
@@ -894,6 +947,7 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 
 #ifdef DEBUG
 		cout<<"Processing Request for node "<<nodesRequested[i]<<" who is "<<g[u].name<<endl;
+		debugfile<<"Processing Request for node "<<nodesRequested[i]<<" who is "<<g[u].name<<endl;
 #endif
 
 		//find degree of node for ego
@@ -916,12 +970,14 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 		P = g[u].P;
 #ifdef DEBUG
 		cout<<"Probability for node "<<nodesRequested[i]<<" to accept request is: "<<P<<endl;
+		debugfile<<"Probability for node "<<nodesRequested[i]<<" to accept request is: "<<P<<endl;
 #endif
 
 		//randomly determine whether the request will be accepted
 		randnum = (double)rand() / (double)(RAND_MAX + 1);
 #ifdef DEBUG
 		cout<<"DEBUG: randum num for adding edge: "<<randnum<<endl;
+		debugfile<<"DEBUG: randum num for adding edge: "<<randnum<<endl;
 #endif
 
 		if(randnum < P)
@@ -938,6 +994,7 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 			
 #ifdef DEBUG
 			cout<<"SC is now connected to "<<g[u].name<<" !!!"<<endl;
+			debugfile<<"SC is now connected to "<<g[u].name<<" !!!"<<endl;
 #endif
 		}
 		else
@@ -1012,7 +1069,7 @@ double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,doubl
 	
 	
 	//find the nodes that the stealth company requested
-	nodesRequested = genRequestList(pt,po,alpha,strategy, budget);
+	nodesRequested = genRequestList(pt,po,alpha, budget,strategy);
 
 	
 	//find the nodes that accepted the connection requests and add them to the network
@@ -1046,7 +1103,7 @@ double MyGraph<graphtype>::Infiltrate_alt(double join, double leave, double pt,d
 	//nodeJoin(join);
 
 	//find the nodes that the stealth company requested
-	nodesRequested = genRequestList(strategy, budget);
+	nodesRequested = genRequestList(pt,po,alpha,budget,strategy);
 
 	//find the nodes that accepted the connection requests and add them to the network
 	update(nodesRequested, pt, po, alpha);
