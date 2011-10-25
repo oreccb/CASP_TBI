@@ -1,13 +1,13 @@
 #include "MyGraph.h"
 #include <time.h>
 
-int presentation2(double join,double leave, double pt, double po, int alpha, int budget, int strategy)
+double benchmark(double join,double leave, double pt, double po, int alpha, int budget, int strategy)
 {
 	typedef adjacency_list<setS,vecS,undirectedS, MyNode> undirGraph;
 
 	//will need to write out data to file
 	ofstream outfile;
-	outfile.open("results_.csv");
+	outfile.open("benachmark_results.csv");
 
 
 	//need to add the SC node and set the SC_vertex value in class
@@ -16,8 +16,8 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;*/
 	
 	double TrustValue = 0;
-	int total_itr = 147;
-	int num_sim = 150;
+	int total_itr = 1;
+	int num_sim = 1000;
 
 	vector<double> results(total_itr);
 	//init results vector
@@ -31,8 +31,8 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 	
 	//MyGraph<undirGraph> G_real("Email-Enron.txt",0);
 
-	//MyGraph<undirGraph> G_real("BrianInMap.txt",1);
-	MyGraph<undirGraph> G_real(146,(double)((double)2032.0/(((double)146.0*(double)145.0)/2.0)) );
+	MyGraph<undirGraph> G_real("BrianInMap.txt",1);
+	//MyGraph<undirGraph> G_real(146,(double)((double)2636.0/(((double)146.0*(double)145.0)/2.0)) );
 	
 
 	clock_t ends = clock();
@@ -53,7 +53,9 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 		//R = G_tempreal.degOfVertices();
 		//MyGraph<undirGraph> G_real(R);
 		
-		
+		cout<<"Real Graph:"<<endl;
+		cout<<G_real.getNumVertices()<<endl;
+		cout<<G_real.getNumEdges()<<endl<<endl;
 		
 		//reinitialize graph
 		G_real.reinit();
@@ -64,9 +66,9 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 		//init or reinitialize the priority queue that is used in the greedy strategy
 		G_real.initq();
 
-		/*cout<<"Real Graph:"<<endl;
+		cout<<"Real Graph:"<<endl;
 		cout<<G_real.getNumVertices()<<endl;
-		cout<<G_real.getNumEdges()<<endl<<endl;*/
+		cout<<G_real.getNumEdges()<<endl<<endl;
 
 		//do 'total_itr' timesteps of simulation
 		for(int i=0; i<total_itr; i++)
@@ -79,7 +81,7 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 							  budget,   //budget (number of nodes requested at each itr)
 							  strategy);  //strategy
 
-			cout<<"Simulation "<<k<<", Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
+			//cout<<"Simulation "<<k<<", Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
 			//outfile<<"Trust Value at timestep "<<i<<": "<<TrustValue<<endl;
 			results[i] = results[i] + TrustValue;
 		}
@@ -95,20 +97,7 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 		outfile<<i<<","<<results[i]<<endl;
 	}
 	
-	int timetillsuccess = 147;
-	//find the time to get 30% of network
-	for(int i =0;i<total_itr;i++)
-	{
-		if(results[i] > .3)
-		{
-			cout<<"Time to get 30% of network: "<<i<<" "<<results[i]<<endl;
-			timetillsuccess = i;
-			break;
-		}
-		//outfile<<i<<","<<results[i]<<endl;
-	}
-
-	return timetillsuccess;
-	//return results[ total_itr-1 ];
+	
+	return results[ total_itr-1 ];
 	
 }

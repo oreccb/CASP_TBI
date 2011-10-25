@@ -125,7 +125,7 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
-		g[*vi].CNeigh = 0
+		g[*vi].CNeigh = 0;
 	}
 
 	
@@ -346,7 +346,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 		}
 
 
-		//loop through each line of file
+		//loop through each line of file, around 367662
 		while ( getline(LI_inp, line) )
 		{
 			//make each line like an input stream so we can manipulate easier
@@ -1069,11 +1069,18 @@ double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,doubl
 	
 	
 	//find the nodes that the stealth company requested
-	nodesRequested = genRequestList(pt,po,alpha, budget,strategy);
-
+	//clock_t start = clock();
+	nodesRequested = genRequestList(pt,po,alpha,budget,strategy);
+    //clock_t ends = clock();
+	//cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
+	//cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start)<< endl;
 	
 	//find the nodes that accepted the connection requests and add them to the network
+	//start = clock();
 	update(nodesRequested, pt, po, alpha);
+	//ends = clock();
+	//cout <<endl<< "Running Time to do the update : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
+	//cout <<endl<< "Running Time to do the update : "<< (double) (ends - start)<< endl;
 
 	
 	TrustValue = calcTrustVal();
@@ -1103,10 +1110,18 @@ double MyGraph<graphtype>::Infiltrate_alt(double join, double leave, double pt,d
 	//nodeJoin(join);
 
 	//find the nodes that the stealth company requested
+	clock_t start = clock();
 	nodesRequested = genRequestList(pt,po,alpha,budget,strategy);
-
+    clock_t ends = clock();
+	//cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
+	cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start)<< endl;
+	
 	//find the nodes that accepted the connection requests and add them to the network
+	start = clock();
 	update(nodesRequested, pt, po, alpha);
+	ends = clock();
+	//cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
+	cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start)<< endl;
 
 	TrustValue = calcBenchVal();
 	//calculate the trust value and that is the return value
