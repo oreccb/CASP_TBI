@@ -61,9 +61,9 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 		//initialize the P attribute
 		G_real.initP(pt,po,alpha);
 
-		//init or reinitialize the priority queue that is used in the greedy strategy
+		//init or reinitialize the list that is used in the greedy strategy
 		G_real.initq();
-
+		
 		/*cout<<"Real Graph:"<<endl;
 		cout<<G_real.getNumVertices()<<endl;
 		cout<<G_real.getNumEdges()<<endl<<endl;*/

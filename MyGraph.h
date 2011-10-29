@@ -9,14 +9,15 @@
 #include <math.h>
 #include <algorithm>
 #include <queue>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/clustering_coefficient.hpp>
-#include <boost/graph/undirected_graph.hpp>
-#include <boost/graph/exterior_property.hpp>
-#include <boost/graph/erdos_renyi_generator.hpp>
-#include <boost/random/linear_congruential.hpp>
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/clustering_coefficient.hpp"
+#include "boost/graph/undirected_graph.hpp"
+#include "boost/graph/exterior_property.hpp"
+#include "boost/graph/erdos_renyi_generator.hpp"
+#include "boost/random/linear_congruential.hpp"
 
 //#include "sortfile.h"
+#include "MyPriorityQueue.h"
 
 //file with bundled proporties to use in graphs
 #include "Bundled_Proporties.h"
@@ -343,23 +344,42 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 		for(int i=0; i<36692; i++)
 		{
 			add_vertex(g);
+			//cout<<"adding vertex "<<i<<endl;
 		}
 
 
 		//loop through each line of file, around 367662
-		while ( getline(LI_inp, line) )
+		//while ( getline(LI_inp, line) )
+		//{
+		//	//make each line like an input stream so we can manipulate easier
+		//	istringstream iss(line);
+		//	
+		//	//cout<<line<<endl; //dubugging
+		//
+		//	iss >> a;
+		//	iss >> b;
+		//
+		//	//u = vertex(a,g);
+		//	//v = vertex(b,g);
+		//		 
+		//	//add edge between nodes u and v
+		//	tie(ed, inserted) = add_edge(a,b, g);
+		//}
+
+		int count = 0;
+		while ( !LI_inp.eof() )
 		{
-			//make each line like an input stream so we can manipulate easier
-			istringstream iss(line);
 			
-			//cout<<line<<endl; //dubugging
+			
+			//cout<<"count: "<<++count<<endl; //dubugging
 		
-			iss >> a;
-			iss >> b;
+			LI_inp >> a;
+			LI_inp >> b;
 		
 			//u = vertex(a,g);
 			//v = vertex(b,g);
-				 
+				
+			//cout<<"DUBUGGING: adding edge :"<<a<<" "<<b<<endl;
 			//add edge between nodes u and v
 			tie(ed, inserted) = add_edge(a,b, g);
 		}
@@ -421,15 +441,11 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
+		g[*vi].CNeigh = 0;
 	}
 
 	SC_vertex = -1;
 	
-	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
-	for(tie(vi2, vi2_end) = vertices(g); vi2 != vi2_end; ++vi2)
-	{
-		g[*vi2].CNeigh = 0;
-	}
 }
 
 
