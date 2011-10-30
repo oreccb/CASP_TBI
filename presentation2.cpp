@@ -16,8 +16,8 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 	cout<<"SC is vertex "<<G_real.getSC_vertex()<<endl;*/
 	
 	double TrustValue = 0;
-	int total_itr = 147;
-	int num_sim = 150;
+	int total_itr = 20000;
+	int num_sim = 10;
 
 	vector<double> results(total_itr);
 	//init results vector
@@ -29,10 +29,10 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 	clock_t start = clock();
 	cout<<"starting to read in data"<<endl;
 	
-	//MyGraph<undirGraph> G_real("Email-Enron.txt",0);
+	MyGraph<undirGraph> G_real("Email-Enron.txt",0);
 
 	//MyGraph<undirGraph> G_real("BrianInMap.txt",1);
-	MyGraph<undirGraph> G_real(146,(double)((double)2032.0/(((double)146.0*(double)145.0)/2.0)) );
+	//MyGraph<undirGraph> G_real(146,(double)((double)2032.0/(((double)146.0*(double)145.0)/2.0)) );
 	
 
 	clock_t ends = clock();
@@ -96,10 +96,10 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 	}
 	
 	int timetillsuccess = 147;
-	//find the time to get 30% of network
+	//find the time to get 20% of network
 	for(int i =0;i<total_itr;i++)
 	{
-		if(results[i] > .3)
+		if(results[i] > .2)
 		{
 			cout<<"Time to get 30% of network: "<<i<<" "<<results[i]<<endl;
 			timetillsuccess = i;
