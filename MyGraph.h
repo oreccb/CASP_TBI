@@ -105,7 +105,7 @@ MyGraph<graphtype>::MyGraph()
 	g = graphtype(DEFAULT_GRAPH_SIZE);
 	SC_vertex = -1;
 	
-	typename typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
@@ -141,9 +141,9 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 	unsigned int j;
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
    // typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
-    graph_traits<graphtype>::edge_iterator ei, ei_end;
+    typename graph_traits<graphtype>::edge_iterator ei, ei_end;
 
-	typename graph_traits<graphtype>::edge_descriptor ed;
+	typename typename graph_traits<graphtype>::edge_descriptor ed;
     bool inserted;
 
 	//initialize seed
@@ -238,11 +238,11 @@ template <class graphtype>
 MyGraph<graphtype>::MyGraph(int N, int d, double p)
 {
 	//working variables
-	graph_traits<graphtype>::edge_descriptor ed;
+	typename graph_traits<graphtype>::edge_descriptor ed;
 	bool inserted;
 	typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
-	graph_traits<graphtype>::edge_iterator ei, ei_end;
-	graph_traits<graphtype>::vertex_descriptor vert1,vert2;
+	typename graph_traits<graphtype>::edge_iterator ei, ei_end;
+	typename graph_traits<graphtype>::vertex_descriptor vert1,vert2;
 
 	double randnum = 0;
 	int g_edges = 0;
@@ -318,11 +318,11 @@ template <class graphtype>
 MyGraph<graphtype>::MyGraph(string datafile, int mode)
 {
 	//working variables
-	graph_traits<graphtype>::edge_descriptor ed;
+	typename graph_traits<graphtype>::edge_descriptor ed;
 	bool inserted;
 	//typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
 	graph_traits<graphtype>::edge_iterator ei, ei_end;
-	graph_traits<graphtype>::vertex_descriptor vert1, u, v;
+	typename graph_traits<graphtype>::vertex_descriptor vert1, u, v;
 
 	int a;
 	int b;
@@ -456,7 +456,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 template <class graphtype>
 void MyGraph<graphtype>::reinit()
 {
-	graph_traits<graphtype>::vertex_descriptor SC;
+	typename graph_traits<graphtype>::vertex_descriptor SC;
 	SC = vertex(SC_vertex,g);
 	//clear edges of SC
 	clear_vertex(SC,g);
@@ -611,7 +611,7 @@ int MyGraph<graphtype>::TBI_add_vertex()
 template <class graphtype>
 void MyGraph<graphtype>::setSC_vertex( int v ) 
 {	
-	graph_traits<graphtype>::vertex_descriptor SC;
+	typename graph_traits<graphtype>::vertex_descriptor SC;
 	SC_vertex = v;
 	SC = vertex(SC_vertex, g);
 	g[SC].name = "Stealth Company";
@@ -634,7 +634,7 @@ int MyGraph<graphtype>::nodeLeft(double leave)
 	double randnum = 0;
 	int num_removed = 0;
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
-	graph_traits<graphtype>::vertex_descriptor SC;
+	typename graph_traits<graphtype>::vertex_descriptor SC;
 
 	SC = vertex(SC_vertex,g);
 
@@ -660,7 +660,7 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 {
 	bool added = false;
 	double randnum = 0;
-	graph_traits<graphtype>::vertex_descriptor u;
+	typename graph_traits<graphtype>::vertex_descriptor u;
 
 	//randnum = (double)rand() / (double)(RAND_MAX + 1);
 	randnum = rand() % 100;
@@ -708,7 +708,7 @@ vector<int> MyGraph<graphtype>::genRequestList(double pt, double po, double alph
 {
 	vector<int> nodesRequested;
 	int randvert = 0;
-	graph_traits<graphtype>::vertex_descriptor randvertdescr;
+	typename graph_traits<graphtype>::vertex_descriptor randvertdescr;
 	
 	switch(strategy)
 	{
@@ -806,7 +806,7 @@ template <class graphtype>
 int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
 {
 	int count = 0;
-	//graph_traits<graphtype>::vertex_descriptor U, V;
+	//typename graph_traits<graphtype>::vertex_descriptor U, V;
 	//graph_traits<graphtype>::adjacency_iterator adjv, adjv_end;
 	//graph_traits<graphtype>::adjacency_iterator adju, adju_end;
 
@@ -840,7 +840,7 @@ int MyGraph<graphtype>::numCommonNeighbors(int u, int v)
 template <class graphtype>
 int MyGraph<graphtype>::updateNumCommonNeighborsANDP(double pt, double po, double alpha, int u)
 {
-	graph_traits<graphtype>::vertex_descriptor U;
+	typename graph_traits<graphtype>::vertex_descriptor U;
 	typename graph_traits<graphtype>::adjacency_iterator adj, adj_end;
 
 	U = vertex(u,g);
@@ -911,7 +911,7 @@ template <class graphtype>
 void MyGraph<graphtype>::updateP(double pt, double po, double alpha, int u)
 {
 	int k,d;
-	graph_traits<graphtype>::vertex_descriptor v;
+	typename graph_traits<graphtype>::vertex_descriptor v;
 
 	v = vertex(u,g);
 	
@@ -952,7 +952,7 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 	{
 		//int numCN;
 		double randnum;
-		graph_traits<graphtype>::vertex_descriptor u, SC;
+		typename graph_traits<graphtype>::vertex_descriptor u, SC;
 
 		//get the vertex desc of the requested node
 		u = vertex(nodesRequested[i], g);
@@ -1034,7 +1034,7 @@ double MyGraph<graphtype>::calcTrustVal()
 	int SC_deg = 0;
 	int total_vertices = 0;
 
-	graph_traits<graphtype>::vertex_descriptor SC;
+	typename graph_traits<graphtype>::vertex_descriptor SC;
 	SC = vertex(SC_vertex,g);
 
 	SC_deg = out_degree(SC,g);
@@ -1058,7 +1058,7 @@ int MyGraph<graphtype>::calcBenchVal()
 	int TV = 0;
 	int SC_deg = 0;
 
-	graph_traits<graphtype>::vertex_descriptor SC;
+	typename graph_traits<graphtype>::vertex_descriptor SC;
 	SC = vertex(SC_vertex,g);
 	SC_deg = out_degree(SC,g);
 
