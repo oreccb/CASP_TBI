@@ -479,12 +479,14 @@ void MyGraph<graphtype>::reinit()
 template <class graphtype>
 float MyGraph<graphtype>::computeClusteringCoefficient()
 {
-	typedef typename exterior_vertex_property<graphtype, float> ClusteringProperty;
-	typedef typename ClusteringProperty::container_type ClusteringContainer;
-	typedef typename ClusteringProperty::map_type ClusteringMap;
+	//typedef exterior_vertex_property<graphtype, float> ClusteringProperty;
+	//typedef ClusteringProperty::container_type ClusteringContainer;
+	//typedef ClusteringProperty::map_type ClusteringMap;
 
-	ClusteringContainer coefs(num_vertices(g));
-    ClusteringMap cm(coefs, g);
+	//ClusteringContainer coefs(num_vertices(g));
+   // ClusteringMap cm(coefs, g);
+	typename ClusteringProperty::container_type coefs(num_vertices(g));
+	typename ClusteringProperty::map_type cm(coefs, g);
     float cc = all_clustering_coefficients(g, cm);
 	//cout<<"clustering coefficient: "<<cc<<endl;
 
