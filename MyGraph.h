@@ -105,7 +105,7 @@ MyGraph<graphtype>::MyGraph()
 	g = graphtype(DEFAULT_GRAPH_SIZE);
 	SC_vertex = -1;
 	
-	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
@@ -122,7 +122,7 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	boost::minstd_rand gen;
 	g = graphtype(ERGen(gen, N, p), ERGen(), N);
 
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
@@ -139,8 +139,8 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
 {
 	unsigned int i;
 	unsigned int j;
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
-   // graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
+   // typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
     graph_traits<graphtype>::edge_iterator ei, ei_end;
 
 	typename graph_traits<graphtype>::edge_descriptor ed;
@@ -220,7 +220,7 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
     cout<<endl;*/
 
 	//set the 'covered' value of each vertex to false
-	graph_traits<graphtype>::vertex_iterator vii, vii_end;
+	typename graph_traits<graphtype>::vertex_iterator vii, vii_end;
 	for (tie(vii, vii_end) = vertices(g); vii != vii_end; ++vii)
 	{
 		g[*vii].covered = false;
@@ -240,7 +240,7 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 	//working variables
 	graph_traits<graphtype>::edge_descriptor ed;
 	bool inserted;
-	graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+	typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
 	graph_traits<graphtype>::edge_iterator ei, ei_end;
 	graph_traits<graphtype>::vertex_descriptor vert1,vert2;
 
@@ -303,7 +303,7 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 	}
 
 	//set the 'covered' value of each vertex to false
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
@@ -320,7 +320,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	//working variables
 	graph_traits<graphtype>::edge_descriptor ed;
 	bool inserted;
-	//graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
+	//typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
 	graph_traits<graphtype>::edge_iterator ei, ei_end;
 	graph_traits<graphtype>::vertex_descriptor vert1, u, v;
 
@@ -437,7 +437,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	}
 
 	//set the 'covered' value of each vertex to false
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
@@ -462,7 +462,7 @@ void MyGraph<graphtype>::reinit()
 	clear_vertex(SC,g);
 
 	//make the covered and CNeigh attributes zero again
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) //loop through the adjacent vertices and update their CNeigh val
 	{
 		g[*vi].CNeigh = 0;
@@ -498,7 +498,7 @@ vector<int> MyGraph<graphtype>::degOfVertices()
 {
 	vector<int> R;
 	int deg;
-	graph_traits<graphtype>::vertex_iterator u, u_end;
+	typename graph_traits<graphtype>::vertex_iterator u, u_end;
 	//degree_size_type deg2;
 
 	for (tie(u, u_end) = vertices(g); u != u_end; ++u)
@@ -521,7 +521,7 @@ void MyGraph<graphtype>::computeDegreeDistribution()
 	vector<int> R;
 	int deg;
 	int max_deg;
-	graph_traits<graphtype>::vertex_iterator u, u_end;
+	typename graph_traits<graphtype>::vertex_iterator u, u_end;
 
 	ofstream degOutfile;
 	degOutfile.open("degOutfile.csv");
@@ -585,7 +585,7 @@ template <class graphtype>
 void MyGraph<graphtype>::printVE()
 {
 	
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
     graph_traits<graphtype>::edge_iterator ei, ei_end;
 
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
@@ -633,7 +633,7 @@ int MyGraph<graphtype>::nodeLeft(double leave)
 {
 	double randnum = 0;
 	int num_removed = 0;
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	graph_traits<graphtype>::vertex_descriptor SC;
 
 	SC = vertex(SC_vertex,g);
@@ -680,7 +680,7 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 template <class graphtype>
 void MyGraph<graphtype>::initq()
 {
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	int i =0;
 
 	//for(int i=0; i< q.size();i++)
@@ -893,7 +893,7 @@ void MyGraph<graphtype>::initP(double pt, double po, double alpha)
 {
 	int k;
 	int d;
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	//loop through vertices
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) //loop through the adjacent vertices and update their CNeigh val
 	{
