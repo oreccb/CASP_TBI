@@ -29,8 +29,8 @@ public:
 	//void buildHeap(vector< pair<int,double*> >);
 
 
-	int MyPriorityQueue::relevantSize();  //# of nodes that matter
-	int MyPriorityQueue::realSize();      //actual # of nodes in the pq vector obtained by pq.size() (could be a little higher than relevantSize()
+	int relevantSize();  //# of nodes that matter
+	int realSize();      //actual # of nodes in the pq vector obtained by pq.size() (could be a little higher than relevantSize()
 
 	pair<int,double*> getElement(int i);
 
