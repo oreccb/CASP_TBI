@@ -105,7 +105,7 @@ MyGraph<graphtype>::MyGraph()
 	g = graphtype(DEFAULT_GRAPH_SIZE);
 	SC_vertex = -1;
 	
-	graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
