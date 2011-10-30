@@ -841,7 +841,7 @@ template <class graphtype>
 int MyGraph<graphtype>::updateNumCommonNeighborsANDP(double pt, double po, double alpha, int u)
 {
 	graph_traits<graphtype>::vertex_descriptor U;
-	graph_traits<graphtype>::adjacency_iterator adj, adj_end;
+	typename graph_traits<graphtype>::adjacency_iterator adj, adj_end;
 
 	U = vertex(u,g);
 
