@@ -143,7 +143,7 @@ MyGraph<graphtype>::MyGraph(vector<int> R)
    // typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
     typename graph_traits<graphtype>::edge_iterator ei, ei_end;
 
-	typename typename graph_traits<graphtype>::edge_descriptor ed;
+	typename graph_traits<graphtype>::edge_descriptor ed;
     bool inserted;
 
 	//initialize seed
@@ -321,7 +321,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 	typename graph_traits<graphtype>::edge_descriptor ed;
 	bool inserted;
 	//typename graph_traits<graphtype>::vertex_iterator vi2, vi2_end;
-	graph_traits<graphtype>::edge_iterator ei, ei_end;
+	typename graph_traits<graphtype>::edge_iterator ei, ei_end;
 	typename graph_traits<graphtype>::vertex_descriptor vert1, u, v;
 
 	int a;
@@ -479,9 +479,9 @@ void MyGraph<graphtype>::reinit()
 template <class graphtype>
 float MyGraph<graphtype>::computeClusteringCoefficient()
 {
-	typedef exterior_vertex_property<graphtype, float> ClusteringProperty;
-	typedef ClusteringProperty::container_type ClusteringContainer;
-	typedef ClusteringProperty::map_type ClusteringMap;
+	typedef typename exterior_vertex_property<graphtype, float> ClusteringProperty;
+	typedef typename ClusteringProperty::container_type ClusteringContainer;
+	typedef typename ClusteringProperty::map_type ClusteringMap;
 
 	ClusteringContainer coefs(num_vertices(g));
     ClusteringMap cm(coefs, g);
@@ -586,7 +586,7 @@ void MyGraph<graphtype>::printVE()
 {
 	
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
-    graph_traits<graphtype>::edge_iterator ei, ei_end;
+    typename graph_traits<graphtype>::edge_iterator ei, ei_end;
 
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
