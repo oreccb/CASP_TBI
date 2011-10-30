@@ -109,7 +109,7 @@ MyGraph<graphtype>::MyGraph()
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
 		g[*vi].covered = false;
-		g[*vi].CNeigh = 0
+		g[*vi].CNeigh = 0;
 	}
 }
 
