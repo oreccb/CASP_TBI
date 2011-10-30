@@ -485,8 +485,8 @@ float MyGraph<graphtype>::computeClusteringCoefficient()
 
 	//ClusteringContainer coefs(num_vertices(g));
    // ClusteringMap cm(coefs, g);
-	typename ClusteringProperty::container_type coefs(num_vertices(g));
-	typename ClusteringProperty::map_type cm(coefs, g);
+	typename exterior_vertex_property<graphtype, float>::container_type coefs(num_vertices(g));
+	typename exterior_vertex_property<graphtype, float>::map_type cm(coefs, g);
     float cc = all_clustering_coefficients(g, cm);
 	//cout<<"clustering coefficient: "<<cc<<endl;
 
