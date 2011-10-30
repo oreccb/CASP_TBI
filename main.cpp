@@ -70,9 +70,9 @@ int main()
 	//initialize seed
 	srand( (int)time(NULL) );
 
-	//MyGraph<undirGraph> G_real("Email-Enron.txt",0);
+	MyGraph<undirGraph> G_real("Email-Enron.txt",0);
 	
-	MyGraph<undirGraph> G_real("BrianInMap.txt",1);
+	//MyGraph<undirGraph> G_real("BrianInMap.txt",1);
 	//MyGraph<undirGraph> G_real2(G_real);
 	
 	/*cout<<"Real Graph:"<<endl;
@@ -94,7 +94,7 @@ int main()
 		out<<pt<<","<<timeforsuc<<endl;
 	}*/
 
-	presentation2(0,0,.5,.5,1,1,2);
+	//presentation2(0,0,.5,.5,1,1,2);
 
 	///////////////////////////////////////////////END PRESENTATION 2///////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////
