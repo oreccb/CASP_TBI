@@ -6,10 +6,15 @@ int presentation2(double join,double leave, double pt, double po, int alpha, int
 
 double benchmark(double join,double leave, double pt, double po, int alpha, int budget, int strategy);
 
+int runSim(double join,double leave, double pt, double po, int alpha, int budget, int strategy);
+
+typedef adjacency_list<setS,vecS,undirectedS, MyNode> undirGraph;
+
+typedef adjacency_list<setS,vecS,directedS, MyNode, MyEdge> dirGraph;
 
 void testpq()
 {
-	vector< pair<int,double*> > thing;
+	/*vector< pair<int,double*> > thing;
 	vector<double> graphP;
 	graphP.push_back(.2);
 	graphP.push_back(.34);
@@ -34,7 +39,7 @@ void testpq()
 	MyPriorityQueue PQ(thing);
 	
 
-	for(int i=0; i<7; i++)
+	for(int i=0; i<PQ.relevantSize(); i++)
 	{
 		
 		cout<<PQ.getElement(i).first<<","<<*PQ.getElement(i).second<<endl;
@@ -43,11 +48,11 @@ void testpq()
 
 	PQ.pop();
 
-	for(int i=0; i<7; i++)
+	for(int i=0; i<PQ.relevantSize(); i++)
 	{
 		
 		cout<<PQ.getElement(i).first<<","<<*PQ.getElement(i).second<<endl;
-	}
+	}*/
 	return;
 }
 
@@ -59,9 +64,7 @@ int main()
 	//graph types
 
 	//use lists so we can remove edges
-	typedef adjacency_list<setS,vecS,undirectedS, MyNode> undirGraph;
 
-	typedef adjacency_list<setS,vecS,directedS, MyNode, MyEdge> dirGraph;
 	//typedef adjacency_list<vecS,vecS,undirectedS> U;
 
 	//Time the Execution of the code
@@ -94,7 +97,8 @@ int main()
 		out<<pt<<","<<timeforsuc<<endl;
 	}*/
 
-	presentation2(0,0,.5,.5,1,1,2);
+	//presentation2(0,0,.5,.5,1,1,2);
+	//runSim(0,0,.5,.5,1,1,2);
 
 	///////////////////////////////////////////////END PRESENTATION 2///////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,6 +143,21 @@ int main()
 
 	//testing priority queue
 	//testpq();
+
+	ofstream out;
+	out.open("NewPerformanceResults.csv");
+
+	int timeforsuc = 0;
+	for(double pt = .05; pt<1.0; pt = pt + .05)
+	{
+
+		timeforsuc = runSim(0.0,0.0, pt, .5, 2, 1, 2);
+		cout<<pt<<","<<timeforsuc<<endl;
+		out<<pt<<","<<timeforsuc<<endl;
+	}
+
+
+	//runSim(0,0,.5,.5,1,1,2);
 
 
 	//End doing stuff

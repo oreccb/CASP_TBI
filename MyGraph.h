@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <math.h>
+#include <time.h>
 #include <algorithm>
 #include <queue>
 #include "boost/graph/adjacency_list.hpp"
@@ -46,8 +47,9 @@ private:
 	graphtype g;									//graph
 	int SC_vertex;									//stealth company vertex
 	//vector<int> CNeigh;								//number of common neighbors of each vertex CAUTION: NOW IN bundled_proporties
+	
 	//priority_queue< pair<int,double>*, vector< pair<int,double>* >, CompareNode> q;  //this won't really work
-	list< pair<int,double*> > q;
+	MyPriorityQueue * PQ;
 
 	
 public:
@@ -106,10 +108,14 @@ MyGraph<graphtype>::MyGraph()
 	SC_vertex = -1;
 	
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	int i =0;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
+		g[*vi].x = i;
 		g[*vi].covered = false;
 		g[*vi].CNeigh = 0;
+
+		i++;
 	}
 }
 
@@ -122,11 +128,15 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	boost::minstd_rand gen;
 	g = graphtype(ERGen(gen, N, p), ERGen(), N);
 
+	int i = 0;
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
+		g[*vi].x = i
 		g[*vi].covered = false;
 		g[*vi].CNeigh = 0;
+		i++;
+
 	}
 
 	
@@ -302,12 +312,16 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 		g_verticies++;
 	}
 
+	int j = 0;
 	//set the 'covered' value of each vertex to false
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
+		g[*vi].x = j;
 		g[*vi].covered = false;
 		g[*vi].CNeigh = 0;
+
+		j++;
 	}
 
 	SC_vertex = -1;
@@ -436,12 +450,17 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 		exit(0);
 	}
 
+	int j = 0;
 	//set the 'covered' value of each vertex to false
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
+		g[*vi].x = j;
 		g[*vi].covered = false;
 		g[*vi].CNeigh = 0;
+
+		j++;
+		
 	}
 
 	SC_vertex = -1;
@@ -452,26 +471,6 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////END CONSTRUCTORS//////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class graphtype>
-void MyGraph<graphtype>::reinit()
-{
-	typename graph_traits<graphtype>::vertex_descriptor SC;
-	SC = vertex(SC_vertex,g);
-	//clear edges of SC
-	clear_vertex(SC,g);
-
-	//make the covered and CNeigh attributes zero again
-	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
-	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) //loop through the adjacent vertices and update their CNeigh val
-	{
-		g[*vi].CNeigh = 0;
-		g[*vi].covered = false;
-	}
-	
-
-	return;
-}
 
 
 
@@ -618,6 +617,7 @@ void MyGraph<graphtype>::setSC_vertex( int v )
 	SC = vertex(SC_vertex, g);
 	g[SC].name = "Stealth Company";
 	g[SC].covered = true;
+	g[SC].x = SC_vertex;
 	
 }
 template <class graphtype>
@@ -678,6 +678,26 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 	return added;
 }
 
+template <class graphtype>
+void MyGraph<graphtype>::reinit()
+{
+	typename graph_traits<graphtype>::vertex_descriptor SC;
+	SC = vertex(SC_vertex,g);
+	//clear edges of SC
+	clear_vertex(SC,g);
+
+	//make the covered and CNeigh attributes zero again
+	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) //loop through the adjacent vertices and update their CNeigh val
+	{
+		g[*vi].CNeigh = 0;
+		g[*vi].covered = false;
+	}
+	
+
+	return;
+}
+
 
 template <class graphtype>
 void MyGraph<graphtype>::initq()
@@ -685,18 +705,17 @@ void MyGraph<graphtype>::initq()
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	int i =0;
 
-	//for(int i=0; i< q.size();i++)
-	//{
-		q.clear();
-	//}
+	/*if(PQ != NULL) {
+		delete PQ;
+	}*/
+
+	vector< struct MyNode* > q;
 
 	for (tie(vi, vi_end) = vertices(g),i=0; vi != vi_end; ++vi,++i) 
 	{
-		
-		pair<int,double*> temp = pair<int,double*>(i,&g[*vi].P);
-		q.push_back(temp);
+		q.push_back(&g[*vi]);
 	}
-	q.sort(mysortt);
+	PQ = new MyPriorityQueue(q);
 	
 	return;
 }
@@ -754,27 +773,27 @@ vector<int> MyGraph<graphtype>::genRequestList(double pt, double po, double alph
 			int i = 0;
 			//vector< pair<int,double> > temp;
 			
-			q.sort(mysortt);
+			//q.sort(mysortt);
 			
-			pair<int,double*> highestPnode;
+			struct MyNode* highestPnode;
 			
-			while(nodesRequested.size() < (unsigned int)budget && !q.empty())
+			while(nodesRequested.size() < (unsigned int)budget && PQ->relevantSize() > 0)
 			{
-				highestPnode = q.front();  //get the first element, should be the guy with highest prob
-				q.pop_front();				//pop that guy from the list
-
-				randvertdescr = vertex(highestPnode.first,g);
-				if( highestPnode.first != SC_vertex  && g[randvertdescr].covered == false  ) 
+				highestPnode = PQ->pop();  //get the first element, should be the guy with highest prob
+		
+				randvertdescr = vertex(highestPnode->x , g);
+				if( highestPnode->x != SC_vertex  && g[randvertdescr].covered == false  ) 
 				{
-					nodesRequested.push_back(highestPnode.first);
-					//cout<<"adding node "<<temp[j].first<<"to list cuz of prob"<<temp[j].second<<endl;
+					nodesRequested.push_back(highestPnode->x);
+					//cout<<"adding node "<<highestPnode->x<<"to list cuz of prob"<<highestPnode->P<<endl;
 					
 				}
 				
-				if(q.empty() == true)
-				{
-					break;
-				}
+				//if(PQ->relevantSize() <= 0)
+				//{
+				//	//break;
+				//	exit(1);   //we are exiting because there are no more nodes to request
+				//}
 			}
 
 		}
@@ -922,6 +941,9 @@ void MyGraph<graphtype>::updateP(double pt, double po, double alpha, int u)
 	d = out_degree(v,g);
 	g[v].P = calcProbabilities(pt,po,alpha,d,k);
 	//cout<<"new P: "<<g[v].P<<endl<<endl;
+
+	PQ->percolateUp( g[v].PQind );    //the prob P at vertex v has gone up so we need percolate it up in our priority queue
+
 	return;
 }
 
@@ -1089,9 +1111,9 @@ double MyGraph<graphtype>::Infiltrate(double join, double leave, double pt,doubl
 	//find the nodes that the stealth company requested
 	//clock_t start = clock();
 	nodesRequested = genRequestList(pt,po,alpha,budget,strategy);
-    //clock_t ends = clock();
-	//cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
-	//cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start)<< endl;
+   /* clock_t ends = clock();
+	cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
+	cout <<endl<< "Running Time to genRequestList : "<< (double) (ends - start)<< endl;*/
 	
 	//find the nodes that accepted the connection requests and add them to the network
 	//start = clock();
