@@ -132,7 +132,7 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
-		g[*vi].x = i
+		g[*vi].x = i;
 		g[*vi].covered = false;
 		g[*vi].CNeigh = 0;
 		i++;
