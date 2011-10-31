@@ -10,8 +10,8 @@ int runSim(double join,double leave, double pt, double po, int alpha, int budget
 	outfile.open("results_.csv");
 
 	double TrustValue = 0;
-	int total_itr = 147;
-	int num_sim = 1000;
+	int total_itr = 20000;
+	int num_sim = 2;
 
 	vector<double> results(total_itr);
 	//init results vector
@@ -23,9 +23,9 @@ int runSim(double join,double leave, double pt, double po, int alpha, int budget
 	clock_t start = clock();
 	cout<<"starting to read in data"<<endl;
 	
-	//MyGraph<undirGraph> G_real("Email-Enron.txt",0);
+	MyGraph<undirGraph> G_real("Email-Enron.txt",0);
 
-	MyGraph<undirGraph> G_real("BrianInMap.txt",1);
+	//MyGraph<undirGraph> G_real("BrianInMap.txt",1);
 	//MyGraph<undirGraph> G_real(146,(double)((double)2032.0/(((double)146.0*(double)145.0)/2.0)) );
 	
 
