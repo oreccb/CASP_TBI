@@ -1,7 +1,7 @@
 #include "MyGraph.h"
 #include <time.h>
 
-int runSim(double join,double leave, double pt, double po, int alpha, int budget, int strategy)
+pair<int,double> runSim(double join,double leave, double pt, double po, int alpha, int budget, int strategy)
 {
 	typedef adjacency_list<setS,vecS,undirectedS, MyNode> undirGraph; //should setS be vecS??
 
@@ -10,8 +10,8 @@ int runSim(double join,double leave, double pt, double po, int alpha, int budget
 	outfile.open("results_.csv");
 
 	double TrustValue = 0;
-	int total_itr = 20000;
-	int num_sim = 2;
+	int total_itr = 36691;
+	int num_sim = 250;
 
 	vector<double> results(total_itr);
 	//init results vector
@@ -20,17 +20,31 @@ int runSim(double join,double leave, double pt, double po, int alpha, int budget
 		results[i] = 0.0;
 	}
 
-	clock_t start = clock();
-	cout<<"starting to read in data"<<endl;
-	
-	MyGraph<undirGraph> G_real("Email-Enron.txt",0);
+	//clock_t start = clock();
+	//cout<<"starting to read in data"<<endl;
 
-	//MyGraph<undirGraph> G_real("BrianInMap.txt",1);
-	//MyGraph<undirGraph> G_real(146,(double)((double)2032.0/(((double)146.0*(double)145.0)/2.0)) );
-	
+	//MyGraph<undirGraph> G_real("BrianInMap.txt",1); //LINKEDIN NETWORK//
 
-	clock_t ends = clock();
-	cout <<endl<< "Running Time to read in data : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
+
+
+
+	//MyGraph<undirGraph> G_real("Email-Enron.txt",0);
+
+
+	//MyGraph<undirGraph> G_real(36692,(double)((double)183831.0/(((double)36692.0*(double)36691.0)/2.0)) );  //for enron data E-type
+	//MyGraph<undirGraph> G_real(146,(double)((double)2032.0/(((double)146.0*(double)145.0)/2.0)) );           //for linkedin E-type
+
+
+	//Uncomment for R-Type graph
+	MyGraph<undirGraph> G_tempreal("Email-Enron.txt",0);
+        vector<int> R;
+	R = G_tempreal.degOfVertices();
+        MyGraph<undirGraph> G_real(R);  //R - TYPE//
+
+
+
+	//clock_t ends = clock();
+	//cout <<endl<< "Running Time to read in data : "<< (double) (ends - start) / CLOCKS_PER_SEC << endl;
 
 	G_real.debugfile.open("debug.txt");
 
@@ -42,15 +56,11 @@ int runSim(double join,double leave, double pt, double po, int alpha, int budget
 	
 	int num_vert = G_real.getNumVertices();
 	int num_edges = G_real.getNumEdges();
-	
+	//cout<<num_vert<<"  "<<num_edges<<endl;
 
 	//do the simulation 100 times and average results
 	for(int k=0; k<num_sim; k++)
 	{
-		//HACK - need a new graph at each itr OBVIOUSLY!
-		//vector<int> R;
-		//R = G_tempreal.degOfVertices();
-		//MyGraph<undirGraph> G_real(R);
 		
 		//reinitialize graph
 		G_real.reinit();
@@ -101,7 +111,7 @@ int runSim(double join,double leave, double pt, double po, int alpha, int budget
 		//outfile<<i<<","<<results[i]<<endl;
 	}
 
-	return timetillsuccess;
+	return pair<int,double>(timetillsuccess,results[total_itr-1]);
 	//return results[ total_itr-1 ];
 	
 }

@@ -1,12 +1,13 @@
 #include "MyGraph.h"
 #include <time.h>
 
+#define DEBUG
 
 int presentation2(double join,double leave, double pt, double po, int alpha, int budget, int strategy);
 
 double benchmark(double join,double leave, double pt, double po, int alpha, int budget, int strategy);
 
-int runSim(double join,double leave, double pt, double po, int alpha, int budget, int strategy);
+pair<int,double> runSim(double join,double leave, double pt, double po, int alpha, int budget, int strategy);
 
 typedef adjacency_list<setS,vecS,undirectedS, MyNode> undirGraph;
 
@@ -144,21 +145,67 @@ int main()
 	//testing priority queue
 	//testpq();
 
-	ofstream out;
-	out.open("NewPerformanceResults.csv");
+	// // ///REAL STUFF////////////////////////////////
 
-	int timeforsuc = 0;
-	for(double pt = .05; pt<1.0; pt = pt + .05)
-	{
+	
+	// //int graphh = 0;    //0-enron, 1-e-type, 2-r-type
+	// double join = 0.0;  //this prob not used
+	// double leave = 0.0; //this prob not used
+	// double pt = 0.0;  //this is the term that we will loop over (how much trust in one shared connection
+	// double pe = .5;   //base term from ego
+	// int alpha = 2;    //# to raise degree to in ego term
+	// int budget = 1;   //number of requests per timestep
+	// int strategy = 2; //1 for random, 2 for greedy
+	
+	// for(alpha=1; alpha<5; alpha++)
+	//   {
+	//     if(alpha == 2) continue;
 
-		timeforsuc = runSim(0.0,0.0, pt, .5, 2, 1, 2);
-		cout<<pt<<","<<timeforsuc<<endl;
-		out<<pt<<","<<timeforsuc<<endl;
-	}
+	//     ofstream out;
+	//     //string filename;
+
+	//     ostringstream alph, strat; 
+	//     alph << alpha;
+	//     strat << strategy;
+	//     string al = alph.str();
+	//     string st = strat.str();
+       	//     string filename = "TBI_Final_results_Rtype_alpha" + al + "_strategy" + st + ".csv";
+	//     out.open(filename.c_str());
+	//     //out.open("TBI_Final_results_Enron_alpha1_greedy.csv");
 
 
-	//runSim(0,0,.5,.5,1,1,2);
+	//     pair<int,double> returnvall;
+	//     int timeforsuc = 0;
+	//     double finalTV = 0.0;
 
+	
+	//     out<<"Running Simulation for these values: "<<"pe: "<<pe<<" alpha: "<<alpha<<" budget: "<<budget<<" strategy: "<<strategy<<" graph: Rtype"<<endl;
+	
+	//     for(pt = .01; pt<1.0; pt = pt + .01)
+	//       {
+	  
+	// 	returnvall = runSim(join,leave, pt, pe, alpha, budget, strategy);
+	// 	timeforsuc = returnvall.first;
+	// 	finalTV = returnvall.second;
+	// 	cout<<pt<<","<<timeforsuc<<","<<finalTV<<endl;
+	// 	out<<pt<<","<<timeforsuc<<","<<finalTV<<endl;
+	//       }
+
+	//   }
+	//runSim(0,0,.5,.5,2,1,2);
+
+	
+	MyGraph<undirGraph> G_etype(36692,(double)((double)183831.0/(((double)36692.0*(double)36691.0)/2.0)) );  //for enron data E-type
+
+	MyGraph<undirGraph> G_tempreal("Email-Enron.txt",0);
+        vector<int> R;
+	R = G_tempreal.degOfVertices();
+        MyGraph<undirGraph> G_rtype(R);  //R - TYPE//
+
+	cout<<"E-type cc: "<<G_etype.computeClusteringCoefficient()<<endl<<endl;
+
+	cout<<"R-type cc: "<<G_rtype.computeClusteringCoefficient()<<endl<<endl;
+	
 
 	//End doing stuff
 	clock_t ends = clock();

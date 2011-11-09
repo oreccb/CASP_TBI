@@ -132,7 +132,7 @@ MyGraph<graphtype>::MyGraph(int N, double p)
 	typename graph_traits<graphtype>::vertex_iterator vi, vi_end;
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
-		g[*vi].x = i;
+	        g[*vi].x = i;
 		g[*vi].covered = false;
 		g[*vi].CNeigh = 0;
 		i++;
@@ -283,7 +283,7 @@ MyGraph<graphtype>::MyGraph(int N, int d, double p)
 		for(unsigned int j=0; j<d; j++)
 		{
 			//decide whether to attach randomly or with pref attachment
-			randnum = (double)rand() / (double)(RAND_MAX + 1);
+			randnum = (double)rand() / (double)(RAND_MAX);
 
 			//attach randomly if randnum < p
 			if(randnum < p)
@@ -384,7 +384,7 @@ MyGraph<graphtype>::MyGraph(string datafile, int mode)
 		while ( !LI_inp.eof() )
 		{
 			
-			
+		
 			//cout<<"count: "<<++count<<endl; //dubugging
 		
 			LI_inp >> a;
@@ -642,7 +642,7 @@ int MyGraph<graphtype>::nodeLeft(double leave)
 
 	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
 	{
-		randnum = (double)rand() / (double)(RAND_MAX + 1);
+		randnum = (double)rand() / (double)(RAND_MAX);
 		if( randnum < leave && *vi != SC )  //check if the random number is less than the probability and if the vertex is not the SC
 		{
 			//cout<<leave<<"  "<<randnum<<endl;
@@ -664,7 +664,7 @@ bool MyGraph<graphtype>::nodeJoin(double join)
 	double randnum = 0;
 	typename graph_traits<graphtype>::vertex_descriptor u;
 
-	//randnum = (double)rand() / (double)(RAND_MAX + 1);
+	//randnum = (double)rand() / (double)(RAND_MAX);
 	randnum = rand() % 100;
 	cout<<"randnum: "<<randnum<<endl;
 	if( randnum < (join*100) )  //use integer <join*100 instead 
@@ -708,6 +708,7 @@ void MyGraph<graphtype>::initq()
 	/*if(PQ != NULL) {
 		delete PQ;
 	}*/
+	PQ->pqClear();  //clear the old prioirity queue
 
 	vector< struct MyNode* > q;
 
@@ -1014,7 +1015,7 @@ int MyGraph<graphtype>::update(vector<int> nodesRequested, double pt, double po,
 #endif
 
 		//randomly determine whether the request will be accepted
-		randnum = (double)rand() / (double)(RAND_MAX + 1);
+		randnum = (double)rand() / (double)(RAND_MAX);
 #ifdef DEBUG
 		cout<<"DEBUG: randum num for adding edge: "<<randnum<<endl;
 		debugfile<<"DEBUG: randum num for adding edge: "<<randnum<<endl;
